@@ -34,7 +34,7 @@ function Admin() {
 
   async function setCreci(id: string, status: "approved" | "rejected") {
     const { error } = await supabase.from("profiles").update({ creci_status: status }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(status === "approved" ? "CRECI aprovado" : "CRECI recusado");
     refresh();
   }
@@ -49,7 +49,7 @@ function Admin() {
       reference_month: format(base, "yyyy-MM-01"),
       method: "manual",
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await supabase.from("profiles").update({ subscription_until: next }).eq("id", u.id);
     toast.success(`Mensalidade registrada até ${format(parseISO(next), "dd/MM/yyyy")}`);
     refresh();

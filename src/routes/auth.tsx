@@ -37,7 +37,7 @@ function AuthPage() {
       password: String(f.get("password")),
     });
     setLoading(false);
-    if (error) return toast.error("E-mail ou senha incorretos.");
+    if (error) { toast.error("E-mail ou senha incorretos."); return; }
     navigate({ to: "/painel" });
   }
 
@@ -45,7 +45,7 @@ function AuthPage() {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const creci = String(f.get("creci") ?? "").trim();
-    if (type !== "owner" && !creci) return toast.error("Informe o número do CRECI.");
+    if (type !== "owner" && !creci) { toast.error("Informe o número do CRECI."); return; }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email: String(f.get("email")),
@@ -63,7 +63,7 @@ function AuthPage() {
       },
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setSent(true);
   }
 

@@ -108,7 +108,7 @@ function NewProperty() {
       })
       .select("id")
       .single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setOpen(false);
     navigate({ to: "/imovel/$id", params: { id: data.id } });
   }

@@ -26,7 +26,7 @@ function Perfil() {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
     const { error } = await supabase.from("profiles").update(f as Partial<Profile>).eq("id", p!.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Cadastro atualizado");
     qc.invalidateQueries({ queryKey: ["me"] });
   }

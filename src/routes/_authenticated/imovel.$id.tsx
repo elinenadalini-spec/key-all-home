@@ -102,14 +102,14 @@ function InfoForm({ p }: { p: Property }) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", p.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Informações salvas");
     qc.invalidateQueries({ queryKey: ["property", p.id] });
   }
   async function remove() {
     if (!confirm("Excluir este imóvel e todo o calendário?")) return;
     const { error } = await supabase.from("properties").delete().eq("id", p.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     navigate({ to: "/painel" });
   }
   return (
@@ -215,7 +215,7 @@ function Access({ propertyId }: { propertyId: string }) {
     const { error } = on
       ? await supabase.from("authorizations").delete().eq("property_id", propertyId).eq("agent_id", agentId)
       : await supabase.from("authorizations").insert({ property_id: propertyId, agent_id: agentId });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["auths", propertyId] });
   }
 

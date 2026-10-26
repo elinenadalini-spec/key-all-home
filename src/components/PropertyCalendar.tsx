@@ -50,7 +50,7 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
 
   const grid = useMemo(() => {
     const all = eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) });
-    const pad = (getDay(all[0]) + 6) % 7; // monday first
+    const pad = (getDay(all[0]!) + 6) % 7; // monday first
     return { pad, all };
   }, [month]);
 
@@ -77,7 +77,7 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
       };
     });
     const { error } = await supabase.from("property_days").upsert(rows);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`${rows.length} dia(s) atualizado(s)`);
     setSel(new Set());
     setPrice("");
