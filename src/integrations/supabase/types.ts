@@ -14,23 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_requests: {
+        Row: {
+          agent_accepted_terms_at: string | null
+          agent_id: string
+          created_at: string
+          id: string
+          property_id: string
+          status: string
+        }
+        Insert: {
+          agent_accepted_terms_at?: string | null
+          agent_id: string
+          created_at?: string
+          id?: string
+          property_id: string
+          status?: string
+        }
+        Update: {
+          agent_accepted_terms_at?: string | null
+          agent_id?: string
+          created_at?: string
+          id?: string
+          property_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_terms: {
+        Row: {
+          body: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          id: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       authorizations: {
         Row: {
           agent_id: string
           created_at: string
           id: string
+          owner_accepted_terms_at: string | null
           property_id: string
         }
         Insert: {
           agent_id: string
           created_at?: string
           id?: string
+          owner_accepted_terms_at?: string | null
           property_id: string
         }
         Update: {
           agent_id?: string
           created_at?: string
           id?: string
+          owner_accepted_terms_at?: string | null
           property_id?: string
         }
         Relationships: [
@@ -248,9 +307,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      agent_can_see_cover: {
+        Args: { _name: string; _uid: string }
+        Returns: boolean
+      }
+      agent_connected_to_owner: {
+        Args: { _agent: string; _owner: string }
+        Returns: boolean
+      }
       agent_has_access: {
         Args: { _pid: string; _uid: string }
         Returns: boolean
+      }
+      agent_network_properties: {
+        Args: never
+        Returns: {
+          bedrooms: number
+          city: string
+          cover: string
+          guests: number
+          has_access: boolean
+          id: string
+          owner_id: string
+          request_status: string
+          title: string
+        }[]
+      }
+      agent_owner_contacts: {
+        Args: never
+        Returns: {
+          city: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          whatsapp: string
+        }[]
       }
       has_role: {
         Args: {
@@ -275,6 +367,7 @@ export type Database = {
         }[]
       }
       owns_property: { Args: { _pid: string; _uid: string }; Returns: boolean }
+      property_owner: { Args: { _pid: string }; Returns: string }
     }
     Enums: {
       account_type: "owner" | "broker" | "agency"
