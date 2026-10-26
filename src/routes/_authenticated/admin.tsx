@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { TERM_KEYS, useTerms, type TermKey } from "@/lib/terms";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Administração — Temporada" }, { name: "description", content: "Aprovação de CRECI e mensalidades." }] }),
@@ -72,6 +75,7 @@ function Admin() {
         <TabsList>
           <TabsTrigger value="creci">CRECI ({pending.length})</TabsTrigger>
           <TabsTrigger value="users">Usuários e mensalidades</TabsTrigger>
+          <TabsTrigger value="termos">Termos</TabsTrigger>
         </TabsList>
         <TabsContent value="creci" className="space-y-2 pt-4">
           {pending.length === 0 && <p className="text-sm text-muted-foreground">Nenhum CRECI aguardando análise.</p>}
@@ -106,8 +110,39 @@ function Admin() {
             );
           })}
         </TabsContent>
+        <TabsContent value="termos" className="space-y-4 pt-4"><TermsEditor /></TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function TermsEditor() {
+  const { data: terms } = useTerms();
+  const qc = useQueryClient();
+  if (!terms) return null;
+  const labels: Record<TermKey, string> = { geral: "Cláusulas gerais", proprietario: "Proprietário", corretor: "Corretor / Imobiliária" };
+  async function save(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const rows = TERM_KEYS.map((k) => ({ id: k, title: String(f.get(`${k}-title`)), body: String(f.get(`${k}-body`)), updated_at: new Date().toISOString() }));
+    const { error } = await supabase.from("app_terms").upsert(rows);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Termos atualizados");
+    qc.invalidateQueries({ queryKey: ["terms"] });
+  }
+  return (
+    <form onSubmit={save} className="space-y-5">
+      <p className="text-sm text-muted-foreground">Este texto aparece quando o proprietário autoriza e quando o corretor pede autorização.</p>
+      {TERM_KEYS.map((k) => (
+        <div key={k} className="space-y-2 rounded-2xl border bg-card p-4">
+          <Label>{labels[k]} — título</Label>
+          <Input name={`${k}-title`} defaultValue={terms[k].title} />
+          <Label>Texto</Label>
+          <Textarea name={`${k}-body`} rows={8} defaultValue={terms[k].body} />
+        </div>
+      ))}
+      <Button>Salvar termos</Button>
+    </form>
   );
 }
 
