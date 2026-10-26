@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { accountLabel, brl, useMe, type Property } from "@/lib/me";
 import { PHOTO_BUCKET, usePhotoUrls } from "@/lib/photos";
 import { PropertyCalendar } from "@/components/PropertyCalendar";
+import { TermsAcceptDialog, TermsText } from "@/components/TermsAccept";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +70,7 @@ function PropertyPage() {
           <TabsTrigger value="fotos">Fotos</TabsTrigger>
           <TabsTrigger value="info">Informações</TabsTrigger>
           {canEdit && <TabsTrigger value="acesso">Autorizações</TabsTrigger>}
+          <TabsTrigger value="termo">Termo</TabsTrigger>
         </TabsList>
         <TabsContent value="cal" className="pt-4">
           {canEdit && <p className="mb-3 text-sm text-muted-foreground">Toque nos dias para selecionar, depois bloqueie ou altere o valor.</p>}
@@ -77,6 +79,7 @@ function PropertyPage() {
         <TabsContent value="fotos" className="pt-4"><Photos p={p} canEdit={canEdit} /></TabsContent>
         <TabsContent value="info" className="pt-4">{canEdit ? <InfoForm p={p} /> : <p className="whitespace-pre-line text-sm">{p.description || "Sem descrição."}</p>}</TabsContent>
         {canEdit && <TabsContent value="acesso" className="pt-4"><Access propertyId={p.id} /></TabsContent>}
+        <TabsContent value="termo" className="pt-4"><div className="rounded-2xl border bg-card p-5"><TermsText /></div></TabsContent>
       </Tabs>
     </div>
   );
@@ -211,21 +214,63 @@ function Access({ propertyId }: { propertyId: string }) {
     },
   });
 
-  async function toggle(agentId: string, on: boolean) {
-    const { error } = on
-      ? await supabase.from("authorizations").delete().eq("property_id", propertyId).eq("agent_id", agentId)
-      : await supabase.from("authorizations").insert({ property_id: propertyId, agent_id: agentId });
+  const requests = useQuery({
+    queryKey: ["requests", propertyId],
+    queryFn: async () => {
+      const { data } = await supabase.from("access_requests").select("*").eq("property_id", propertyId).eq("status", "pending");
+      return data ?? [];
+    },
+  });
+  const [pendingAgent, setPendingAgent] = useState<{ id: string; requestId?: string } | null>(null);
+
+  async function authorize() {
+    if (!pendingAgent) return;
+    const { error } = await supabase.from("authorizations").insert({
+      property_id: propertyId, agent_id: pendingAgent.id, owner_accepted_terms_at: new Date().toISOString(),
+    });
     if (error) { toast.error(error.message); return; }
+    await supabase.from("access_requests").update({ status: "approved" }).eq("property_id", propertyId).eq("agent_id", pendingAgent.id);
+    toast.success("Autorização concedida");
+    setPendingAgent(null);
+    qc.invalidateQueries({ queryKey: ["auths", propertyId] });
+    qc.invalidateQueries({ queryKey: ["requests"] });
+  }
+  async function reject(requestId: string) {
+    await supabase.from("access_requests").update({ status: "rejected" }).eq("id", requestId);
+    qc.invalidateQueries({ queryKey: ["requests"] });
+  }
+  async function revoke(agentId: string) {
+    const { error } = await supabase.from("authorizations").delete().eq("property_id", propertyId).eq("agent_id", agentId);
+    if (error) { toast.error(error.message); return; }
+    await supabase.from("access_requests").delete().eq("property_id", propertyId).eq("agent_id", agentId);
     qc.invalidateQueries({ queryKey: ["auths", propertyId] });
   }
 
+  const byId = new Map((agents.data ?? []).map((a) => [a.id, a]));
   const list = (agents.data ?? []).filter((a) =>
     [a.full_name, a.company_name, a.city, a.creci].join(" ").toLowerCase().includes(q.toLowerCase()),
   );
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Corretores e imobiliárias com CRECI aprovado. Autorize quem pode ver o calendário e os valores deste imóvel.</p>
+      {(requests.data?.length ?? 0) > 0 && (
+        <div className="space-y-2 rounded-2xl border border-accent/40 bg-accent/10 p-4">
+          <p className="text-sm font-semibold">Pedidos de acesso</p>
+          {requests.data!.map((r) => {
+            const a = byId.get(r.agent_id);
+            return (
+              <div key={r.id} className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm">{a ? a.company_name || a.full_name : "Profissional"} {a && <span className="text-muted-foreground">· CRECI {a.creci}/{a.creci_uf}</span>}</span>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="success" onClick={() => setPendingAgent({ id: r.agent_id, requestId: r.id })}>Autorizar</Button>
+                  <Button size="sm" variant="outline" onClick={() => reject(r.id)}>Recusar</Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <p className="text-sm text-muted-foreground">Corretores e imobiliárias com CRECI aprovado. Ao autorizar, o profissional vê o calendário e os valores deste imóvel, seus contatos e a foto de capa dos seus outros imóveis.</p>
       <Input placeholder="Buscar por nome, cidade ou CRECI" value={q} onChange={(e) => setQ(e.target.value)} />
       {list.length === 0 && <p className="text-sm text-muted-foreground">Nenhum profissional encontrado.</p>}
       <div className="space-y-2">
@@ -240,13 +285,20 @@ function Access({ propertyId }: { propertyId: string }) {
                 </div>
                 <p className="truncate text-xs text-muted-foreground">CRECI {a.creci}/{a.creci_uf} {a.city ? `· ${a.city}` : ""} {a.phone ? `· ${a.phone}` : ""}</p>
               </div>
-              <Button size="sm" variant={on ? "success" : "outline"} onClick={() => toggle(a.id, on)}>
+              <Button size="sm" variant={on ? "success" : "outline"} onClick={() => (on ? revoke(a.id) : setPendingAgent({ id: a.id }))}>
                 {on ? <><Check /> Autorizado</> : "Autorizar"}
               </Button>
             </div>
           );
         })}
       </div>
+      <TermsAcceptDialog
+        open={!!pendingAgent}
+        onOpenChange={(o) => !o && setPendingAgent(null)}
+        onAccept={authorize}
+        confirmLabel="Aceitar e autorizar"
+        header={pendingAgent && <p className="text-sm">Autorizando <b>{byId.get(pendingAgent.id)?.company_name || byId.get(pendingAgent.id)?.full_name}</b> a intermediar este imóvel.</p>}
+      />
     </div>
   );
 }
