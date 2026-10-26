@@ -14,16 +14,272 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      authorizations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          property_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          property_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          property_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "authorizations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          method: string | null
+          paid_at: string | null
+          reference_month: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string | null
+          paid_at?: string | null
+          reference_month: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string | null
+          paid_at?: string | null
+          reference_month?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          address: string | null
+          bank_account: string | null
+          bank_agency: string | null
+          bank_name: string | null
+          city: string | null
+          company_name: string | null
+          created_at: string
+          creci: string | null
+          creci_status: Database["public"]["Enums"]["creci_status"]
+          creci_uf: string | null
+          document: string | null
+          email: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          pix_key: string | null
+          subscription_until: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          account_type?: Database["public"]["Enums"]["account_type"]
+          address?: string | null
+          bank_account?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
+          city?: string | null
+          company_name?: string | null
+          created_at?: string
+          creci?: string | null
+          creci_status?: Database["public"]["Enums"]["creci_status"]
+          creci_uf?: string | null
+          document?: string | null
+          email?: string | null
+          full_name?: string
+          id: string
+          phone?: string | null
+          pix_key?: string | null
+          subscription_until?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"]
+          address?: string | null
+          bank_account?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
+          city?: string | null
+          company_name?: string | null
+          created_at?: string
+          creci?: string | null
+          creci_status?: Database["public"]["Enums"]["creci_status"]
+          creci_uf?: string | null
+          document?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          pix_key?: string | null
+          subscription_until?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string | null
+          base_price: number
+          bathrooms: number
+          bedrooms: number
+          city: string | null
+          created_at: string
+          description: string | null
+          guests: number
+          id: string
+          owner_id: string
+          photos: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          base_price?: number
+          bathrooms?: number
+          bedrooms?: number
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          guests?: number
+          id?: string
+          owner_id: string
+          photos?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          base_price?: number
+          bathrooms?: number
+          bedrooms?: number
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          guests?: number
+          id?: string
+          owner_id?: string
+          photos?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      property_days: {
+        Row: {
+          blocked: boolean
+          day: string
+          note: string | null
+          price: number | null
+          property_id: string
+          updated_at: string
+        }
+        Insert: {
+          blocked?: boolean
+          day: string
+          note?: string | null
+          price?: number | null
+          property_id: string
+          updated_at?: string
+        }
+        Update: {
+          blocked?: boolean
+          day?: string
+          note?: string | null
+          price?: number | null
+          property_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_days_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      agent_has_access: {
+        Args: { _pid: string; _uid: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_approved_agent: { Args: { _user_id: string }; Returns: boolean }
+      list_approved_agents: {
+        Args: never
+        Returns: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          city: string
+          company_name: string
+          creci: string
+          creci_uf: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+        }[]
+      }
+      owns_property: { Args: { _pid: string; _uid: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      account_type: "owner" | "broker" | "agency"
+      app_role: "admin" | "owner" | "broker" | "agency"
+      creci_status: "not_required" | "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +406,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_type: ["owner", "broker", "agency"],
+      app_role: ["admin", "owner", "broker", "agency"],
+      creci_status: ["not_required", "pending", "approved", "rejected"],
+    },
   },
 } as const
