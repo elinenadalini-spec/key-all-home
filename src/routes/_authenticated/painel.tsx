@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { BedDouble, Clock, Home, Plus, Users } from "lucide-react";
+import { BedDouble, Clock, Home, Lock, Mail, MessageCircle, Phone, Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, useMe, type Property } from "@/lib/me";
 import { usePhotoUrls } from "@/lib/photos";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { TermsAcceptDialog } from "@/components/TermsAccept";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +66,102 @@ function Painel() {
       <div className="grid gap-4 sm:grid-cols-2">
         {props.data?.map((p) => <PropertyCard key={p.id} p={p} />)}
       </div>
+
+      {me.isAgent && !pending && <AgentNetwork />}
+    </div>
+  );
+}
+
+function AgentNetwork() {
+  const qc = useQueryClient();
+  const owners = useQuery({
+    queryKey: ["owner-contacts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("agent_owner_contacts");
+      if (error) throw error;
+      return data;
+    },
+  });
+  const others = useQuery({
+    queryKey: ["network-props"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("agent_network_properties");
+      if (error) throw error;
+      return data.filter((p) => !p.has_access);
+    },
+  });
+  const covers = usePhotoUrls((others.data ?? []).map((p) => p.cover).filter(Boolean) as string[]);
+  const [target, setTarget] = useState<{ id: string; title: string } | null>(null);
+  const { data: me } = useMe();
+
+  async function request() {
+    if (!target) return;
+    await supabase.from("access_requests").delete().eq("property_id", target.id).eq("agent_id", me!.user.id);
+    const { error } = await supabase.from("access_requests").insert({
+      property_id: target.id, agent_id: me!.user.id, agent_accepted_terms_at: new Date().toISOString(),
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Pedido enviado ao proprietário");
+    setTarget(null);
+    qc.invalidateQueries({ queryKey: ["network-props"] });
+  }
+
+  if (!owners.data?.length) return null;
+  return (
+    <div className="space-y-6 pt-4">
+      <section className="space-y-3">
+        <h2 className="text-xl font-bold">Contatos dos proprietários</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {owners.data.map((o) => (
+            <div key={o.id} className="rounded-2xl border bg-card p-4 text-sm">
+              <b className="text-base">{o.full_name || "Proprietário"}</b>
+              {o.city && <p className="text-muted-foreground">{o.city}</p>}
+              <div className="mt-2 space-y-1">
+                {o.phone && <a className="flex items-center gap-2 hover:text-primary" href={`tel:${o.phone}`}><Phone className="h-4 w-4" />{o.phone}</a>}
+                {o.whatsapp && <a className="flex items-center gap-2 hover:text-primary" href={`https://wa.me/55${o.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"><MessageCircle className="h-4 w-4" />{o.whatsapp}</a>}
+                {o.email && <a className="flex items-center gap-2 hover:text-primary" href={`mailto:${o.email}`}><Mail className="h-4 w-4" />{o.email}</a>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      {(others.data?.length ?? 0) > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-xl font-bold">Outros imóveis desses proprietários</h2>
+          <p className="text-sm text-muted-foreground">Peça autorização para ver calendário, valores e todas as fotos.</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {others.data!.map((p) => {
+              const cover = p.cover ? covers.data?.[p.cover] : undefined;
+              const owner = owners.data!.find((o) => o.id === p.owner_id);
+              return (
+                <div key={p.id} className="overflow-hidden rounded-2xl border bg-card shadow-soft">
+                  <div className="aspect-[16/10] bg-muted">
+                    {cover ? <img src={cover} alt={p.title} loading="lazy" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center bg-ocean"><Home className="h-10 w-10 text-primary-foreground/60" /></div>}
+                  </div>
+                  <div className="space-y-2 p-4">
+                    <h3 className="text-lg font-semibold">{p.title}</h3>
+                    <p className="text-sm text-muted-foreground">{[p.city, owner?.full_name].filter(Boolean).join(" · ")}</p>
+                    {p.request_status === "pending" ? (
+                      <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Pedido enviado</Badge>
+                    ) : (
+                      <Button size="sm" variant="accent" onClick={() => setTarget({ id: p.id, title: p.title })}>
+                        <Lock /> {p.request_status === "rejected" ? "Pedir novamente" : "Pedir autorização"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+      <TermsAcceptDialog
+        open={!!target}
+        onOpenChange={(o) => !o && setTarget(null)}
+        onAccept={request}
+        confirmLabel="Aceitar e enviar pedido"
+        header={target && <p className="text-sm">Pedido de autorização para <b>{target.title}</b>.</p>}
+      />
     </div>
   );
 }
