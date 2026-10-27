@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useServerFn } from '@tanstack/react-start';
+import { savePropertyChange } from '@/lib/property-changes.functions';
 
 type Day = { day: string; price: number | null; blocked: boolean };
 
@@ -16,6 +18,8 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [price, setPrice] = useState("");
   const qc = useQueryClient();
+  const saveChange = useServerFn(savePropertyChange);
+  const [saving, setSaving] = useState(false);
   const from = format(startOfMonth(month), "yyyy-MM-dd");
   const to = format(endOfMonth(month), "yyyy-MM-dd");
   const key = ["days", propertyId, from];
@@ -50,7 +54,8 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
 
   const grid = useMemo(() => {
     const all = eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) });
-    const pad = (getDay(all[0]!) + 6) % 7; // monday first
+    const first = all[0];
+    const pad = first ? (getDay(first) + 6) % 7 : 0;
     return { pad, all };
   }, [month]);
 
@@ -66,6 +71,8 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
   }
 
   async function apply(patch: { blocked?: boolean; price?: number | null }) {
+    if (saving || !canEdit || !sel.size) return;
+    setSaving(true);
     const rows = [...sel].map((d) => {
       const cur = days.data?.[d];
       return {
@@ -76,12 +83,14 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
         updated_at: new Date().toISOString(),
       };
     });
-    const { error } = await supabase.from("property_days").upsert(rows);
-    if (error) { toast.error(error.message); return; }
+    try { await saveChange({ data: { propertyId, patch: {}, days: rows } }); }
+    catch { toast.error('Não foi possível atualizar os dias.'); return; }
+    finally { setSaving(false); }
     toast.success(`${rows.length} dia(s) atualizado(s)`);
     setSel(new Set());
     setPrice("");
     qc.invalidateQueries({ queryKey: ["days", propertyId] });
+    qc.invalidateQueries({ queryKey: ['property-history', propertyId] });
   }
 
   return (
@@ -142,12 +151,12 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
             <button className="text-muted-foreground underline" onClick={() => setSel(new Set())}>limpar</button>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="default" onClick={() => apply({ blocked: true })}><Lock /> Bloquear</Button>
-            <Button variant="outline" onClick={() => apply({ blocked: false })}><Unlock /> Liberar</Button>
+            <Button disabled={saving} variant="default" onClick={() => apply({ blocked: true })}><Lock /> Bloquear</Button>
+            <Button disabled={saving} variant="outline" onClick={() => apply({ blocked: false })}><Unlock /> Liberar</Button>
           </div>
           <div className="flex gap-2">
             <Input type="number" step="0.01" min="0" placeholder={`Diária (padrão ${basePrice})`} value={price} onChange={(e) => setPrice(e.target.value)} />
-            <Button variant="accent" disabled={!price} onClick={() => apply({ price: Number(price) })}>Aplicar valor</Button>
+            <Button variant="accent" disabled={saving || !price || !Number.isFinite(Number(price)) || Number(price) < 0} onClick={() => apply({ price: Number(price) })}>Aplicar valor</Button>
           </div>
           <button className="text-xs text-muted-foreground underline" onClick={() => apply({ price: null })}>Voltar ao valor padrão</button>
         </div>

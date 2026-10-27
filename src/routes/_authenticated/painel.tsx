@@ -12,20 +12,28 @@ import { TermsAcceptDialog } from "@/components/TermsAccept";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SegmentSelect } from '@/components/SegmentSelect';
+import { PropertyNotifications } from '@/components/PropertyNotifications';
+import { asSegment, priceLabels, priceSuffix, type Segment } from '@/lib/segments';
 
 export const Route = createFileRoute("/_authenticated/painel")({
-  head: () => ({ meta: [{ title: "Meus imóveis — Temporada" }, { name: "description", content: "Painel de imóveis de temporada." }] }),
+  validateSearch: (search: Record<string, unknown>): { segmento?: Segment } => ['venda','anual','temporada'].includes(String(search.segmento)) ? { segmento: asSegment(String(search.segmento)) } : {},
+  head: () => ({ meta: [{ title: "Meus imóveis — Temporada" }, { name: "description", content: "Imóveis de Venda, Anual e Temporada vinculados aos proprietários." }, { property: 'og:title', content: 'Meus imóveis — Temporada' }, { property: 'og:description', content: 'Carteira de Venda, Anual e Temporada.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
   component: Painel,
 });
 
 function Painel() {
   const { data: me } = useMe();
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const segment = search.segmento;
   const props = useQuery({
     queryKey: ["properties", me?.user.id, me?.isOwner],
     enabled: !!me,
     queryFn: async () => {
       let q = supabase.from("properties").select("*").order("created_at", { ascending: false });
-      if (me!.isOwner) q = q.eq("owner_id", me!.user.id);
+      if (!me) return [];
+      if (me.isOwner) q = q.eq("owner_id", me.user.id);
       const { data, error } = await q;
       if (error) throw error;
       return data as Property[];
@@ -42,7 +50,7 @@ function Painel() {
           <p className="text-sm text-muted-foreground">Olá, {me.profile?.full_name?.split(" ")[0] || "bem-vindo"}</p>
           <h1 className="text-3xl font-bold">{me.isOwner ? "Meus imóveis" : "Imóveis autorizados"}</h1>
         </div>
-        {me.isOwner && <NewProperty />}
+        {me.isOwner && segment && <NewProperty segment={segment} />}
       </div>
 
       {pending && (
@@ -56,7 +64,9 @@ function Painel() {
         </div>
       )}
 
-      {props.data && props.data.length === 0 && (
+      <div className="max-w-sm space-y-2"><Label htmlFor="segment">Segmento</Label><SegmentSelect id="segment" value={segment} onChange={(s) => navigate({ to: '/painel', search: { segmento: s } })} /></div>
+
+      {segment && props.data && props.data.filter((p) => p.segment === segment).length === 0 && (
         <div className="rounded-2xl border border-dashed p-10 text-center text-muted-foreground">
           <Home className="mx-auto mb-2 h-8 w-8" />
           {me.isOwner ? "Cadastre seu primeiro imóvel para começar." : "Nenhum proprietário autorizou você ainda."}
@@ -64,15 +74,15 @@ function Painel() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {props.data?.map((p) => <PropertyCard key={p.id} p={p} />)}
+        {segment && props.data?.filter((p) => p.segment === segment).map((p) => <PropertyCard key={p.id} p={p} />)}
       </div>
 
-      {me.isAgent && !pending && <AgentNetwork />}
+      {me.isAgent && !pending && <><PropertyNotifications />{segment && <AgentNetwork segment={segment} />}</>}
     </div>
   );
 }
 
-function AgentNetwork() {
+function AgentNetwork({ segment }: { segment: Segment }) {
   const qc = useQueryClient();
   const owners = useQuery({
     queryKey: ["owner-contacts"],
@@ -85,7 +95,7 @@ function AgentNetwork() {
   const others = useQuery({
     queryKey: ["network-props"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("agent_network_properties");
+      const { data, error } = await supabase.rpc("agent_network_properties_segmented");
       if (error) throw error;
       return data.filter((p) => !p.has_access);
     },
@@ -95,10 +105,10 @@ function AgentNetwork() {
   const { data: me } = useMe();
 
   async function request() {
-    if (!target) return;
-    await supabase.from("access_requests").delete().eq("property_id", target.id).eq("agent_id", me!.user.id);
+    if (!target || !me) return;
+    await supabase.from("access_requests").delete().eq("property_id", target.id).eq("agent_id", me.user.id);
     const { error } = await supabase.from("access_requests").insert({
-      property_id: target.id, agent_id: me!.user.id, agent_accepted_terms_at: new Date().toISOString(),
+      property_id: target.id, agent_id: me.user.id, agent_accepted_terms_at: new Date().toISOString(),
     });
     if (error) { toast.error(error.message); return; }
     toast.success("Pedido enviado ao proprietário");
@@ -130,9 +140,9 @@ function AgentNetwork() {
           <h2 className="text-xl font-bold">Outros imóveis desses proprietários</h2>
           <p className="text-sm text-muted-foreground">Peça autorização para ver calendário, valores e todas as fotos.</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            {others.data!.map((p) => {
+            {(others.data ?? []).filter((p) => p.segment === segment).map((p) => {
               const cover = p.cover ? covers.data?.[p.cover] : undefined;
-              const owner = owners.data!.find((o) => o.id === p.owner_id);
+              const owner = owners.data?.find((o) => o.id === p.owner_id);
               return (
                 <div key={p.id} className="overflow-hidden rounded-2xl border bg-card shadow-soft">
                   <div className="aspect-[16/10] bg-muted">
@@ -182,24 +192,26 @@ function PropertyCard({ p }: { p: Property }) {
             <span className="flex items-center gap-1"><BedDouble className="h-4 w-4" />{p.bedrooms}</span>
             <span className="flex items-center gap-1"><Users className="h-4 w-4" />{p.guests}</span>
           </span>
-          <span className="font-semibold text-accent">{brl(p.base_price)}<span className="text-xs text-muted-foreground">/noite</span></span>
+          <span className="font-semibold text-accent">{brl(p.base_price)}<span className="text-xs text-muted-foreground">{priceSuffix(p.segment)}</span></span>
         </div>
       </div>
     </Link>
   );
 }
 
-function NewProperty() {
+function NewProperty({ segment }: { segment: Segment }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { data: me } = useMe();
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    if (!me) return;
     const { data, error } = await supabase
       .from("properties")
       .insert({
-        owner_id: me!.user.id,
+        owner_id: me.user.id,
+        segment,
         title: String(f.get("title")),
         city: String(f.get("city")),
         base_price: Number(f.get("base_price") || 0),
@@ -220,7 +232,7 @@ function NewProperty() {
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5"><Label>Nome do imóvel</Label><Input name="title" required placeholder="Casa Pé na Areia" /></div>
           <div className="space-y-1.5"><Label>Cidade</Label><Input name="city" placeholder="Ubatuba - SP" /></div>
-          <div className="space-y-1.5"><Label>Diária padrão (R$)</Label><Input name="base_price" type="number" step="0.01" min="0" required /></div>
+          <div className="space-y-1.5"><Label>{priceLabels[segment]}</Label><Input name="base_price" type="number" step="0.01" min="0" required /></div>
           <Button className="w-full">Criar e abrir</Button>
         </form>
       </DialogContent>
