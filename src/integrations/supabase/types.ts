@@ -75,6 +75,7 @@ export type Database = {
           agent_id: string
           created_at: string
           id: string
+          notifications_enabled: boolean
           owner_accepted_terms_at: string | null
           property_id: string
         }
@@ -82,6 +83,7 @@ export type Database = {
           agent_id: string
           created_at?: string
           id?: string
+          notifications_enabled?: boolean
           owner_accepted_terms_at?: string | null
           property_id: string
         }
@@ -89,6 +91,7 @@ export type Database = {
           agent_id?: string
           created_at?: string
           id?: string
+          notifications_enabled?: boolean
           owner_accepted_terms_at?: string | null
           property_id?: string
         }
@@ -214,6 +217,7 @@ export type Database = {
           id: string
           owner_id: string
           photos: string[]
+          segment: string
           title: string
           updated_at: string
         }
@@ -229,6 +233,7 @@ export type Database = {
           id?: string
           owner_id: string
           photos?: string[]
+          segment?: string
           title: string
           updated_at?: string
         }
@@ -244,6 +249,7 @@ export type Database = {
           id?: string
           owner_id?: string
           photos?: string[]
+          segment?: string
           title?: string
           updated_at?: string
         }
@@ -277,6 +283,98 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "property_days_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          owner_id: string
+          property_id: string
+          read_at: string | null
+          recipient_id: string
+          status: string
+          update_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_id: string
+          property_id: string
+          read_at?: string | null
+          recipient_id: string
+          status?: string
+          update_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          property_id?: string
+          read_at?: string | null
+          recipient_id?: string
+          status?: string
+          update_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_notifications_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_notifications_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "property_updates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_updates: {
+        Row: {
+          actor_id: string
+          created_at: string
+          id: string
+          kind: string
+          new_values: Json
+          observed_ip: unknown
+          old_values: Json
+          owner_id: string
+          property_id: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          new_values: Json
+          observed_ip?: unknown
+          old_values: Json
+          owner_id: string
+          property_id: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          new_values?: Json
+          observed_ip?: unknown
+          old_values?: Json
+          owner_id?: string
+          property_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_updates_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
@@ -333,6 +431,21 @@ export type Database = {
           title: string
         }[]
       }
+      agent_network_properties_segmented: {
+        Args: never
+        Returns: {
+          bedrooms: number
+          city: string
+          cover: string
+          guests: number
+          has_access: boolean
+          id: string
+          owner_id: string
+          request_status: string
+          segment: string
+          title: string
+        }[]
+      }
       agent_owner_contacts: {
         Args: never
         Returns: {
@@ -366,8 +479,22 @@ export type Database = {
           phone: string
         }[]
       }
+      mark_property_notification_read: {
+        Args: { _id: string }
+        Returns: undefined
+      }
       owns_property: { Args: { _pid: string; _uid: string }; Returns: boolean }
       property_owner: { Args: { _pid: string }; Returns: string }
+      save_property_change: {
+        Args: {
+          _actor: string
+          _days?: Json
+          _ip: unknown
+          _patch: Json
+          _property_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       account_type: "owner" | "broker" | "agency"
