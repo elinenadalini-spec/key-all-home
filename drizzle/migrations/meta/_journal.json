@@ -29,6 +29,13 @@
       "when": 1793076707385,
       "tag": "0003_property_segments_audit_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793076993424,
+      "tag": "0004_restrict_audit_notification_writes",
+      "breakpoints": true
     }
   ]
 }
