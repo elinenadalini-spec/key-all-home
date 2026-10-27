@@ -14,6 +14,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Acesse ou crie sua conta de proprietário, corretor ou imobiliária." },
       { property: "og:title", content: "Entrar — Temporada" },
       { property: "og:description", content: "Acesse sua conta Temporada." },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary_large_image' },
     ],
   }),
   component: AuthPage,

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
-  head: () => ({ meta: [{ title: "Financeiro — Temporada" }, { name: "description", content: "Mensalidade e histórico de pagamentos." }] }),
+  head: () => ({ meta: [{ title: "Financeiro — Temporada" }, { name: "description", content: "Mensalidade e histórico de pagamentos." }, { property: 'og:title', content: 'Financeiro — Temporada' }, { property: 'og:description', content: 'Mensalidade e pagamentos na Temporada.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
   component: Financeiro,
 });
 

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
-  head: () => ({ meta: [{ title: "Meu cadastro — Temporada" }, { name: "description", content: "Dados pessoais, contatos e bancários." }] }),
+  head: () => ({ meta: [{ title: "Meu cadastro — Temporada" }, { name: "description", content: "Dados pessoais, contatos e bancários." }, { property: 'og:title', content: 'Meu cadastro — Temporada' }, { property: 'og:description', content: 'Cadastro pessoal e contatos na Temporada.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
   component: Perfil,
 });
 

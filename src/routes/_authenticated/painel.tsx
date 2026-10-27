@@ -17,7 +17,7 @@ import { PropertyNotifications } from '@/components/PropertyNotifications';
 import { asSegment, priceLabels, priceSuffix, type Segment } from '@/lib/segments';
 
 export const Route = createFileRoute("/_authenticated/painel")({
-  validateSearch: (search: Record<string, unknown>): { segmento?: Segment } => ['venda','anual','temporada'].includes(String(search.segmento)) ? { segmento: asSegment(String(search.segmento)) } : {},
+  validateSearch: (search: Record<string, unknown>): { segmento?: Segment } => ['venda','anual','temporada'].includes(String(search['segmento'])) ? { segmento: asSegment(String(search['segmento'])) } : {},
   head: () => ({ meta: [{ title: "Meus imóveis — Temporada" }, { name: "description", content: "Imóveis de Venda, Anual e Temporada vinculados aos proprietários." }, { property: 'og:title', content: 'Meus imóveis — Temporada' }, { property: 'og:description', content: 'Carteira de Venda, Anual e Temporada.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
   component: Painel,
 });
