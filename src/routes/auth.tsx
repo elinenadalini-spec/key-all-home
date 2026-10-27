@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { segmentSchema } from '@/lib/segments';
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -40,7 +41,9 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) { toast.error("E-mail ou senha incorretos."); return; }
-    navigate({ to: "/painel" });
+    const chosen = segmentSchema.safeParse(sessionStorage.getItem('selected-segment'));
+    sessionStorage.removeItem('selected-segment');
+    navigate({ to: "/painel", search: chosen.success ? { segmento: chosen.data } : {} });
   }
 
   async function signUp(e: React.FormEvent<HTMLFormElement>) {
