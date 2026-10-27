@@ -1,15 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { CalendarCheck, KeyRound, ShieldCheck, Wallet } from "lucide-react";
 import hero from "@/assets/hero.jpg";
 import { Button } from "@/components/ui/button";
+import { SegmentSelect } from '@/components/SegmentSelect';
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Temporada — Calendário de diárias em tempo real" },
-      { name: "description", content: "Proprietários bloqueiam datas e atualizam diárias; corretores autorizados veem tudo em tempo real." },
-      { property: "og:title", content: "Temporada — Calendário de diárias em tempo real" },
-      { property: "og:description", content: "Gestão de imóveis de temporada entre proprietários, corretores e imobiliárias." },
+      { title: "Temporada — Imóveis de Venda, Anual e Temporada" },
+      { name: "description", content: "Carteira de imóveis para venda, aluguel anual e temporada, com valores e autorizações por proprietário." },
+      { property: "og:title", content: "Temporada — Imóveis de Venda, Anual e Temporada" },
+      { property: "og:description", content: "Gestão de Venda, Anual e Temporada entre proprietários e profissionais autorizados." },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary_large_image' },
     ],
   }),
   component: Index,
@@ -23,6 +26,7 @@ const features = [
 ];
 
 function Index() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen">
       <section className="relative min-h-[88vh] overflow-hidden">
@@ -34,10 +38,11 @@ function Index() {
             <Link to="/auth" className="text-sm font-semibold underline-offset-4 hover:underline">Entrar</Link>
           </div>
           <div className="max-w-xl pb-6">
-            <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Sua carteira de temporada, sempre atualizada.</h1>
+            <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Venda, Anual e Temporada</h1>
             <p className="mt-4 text-base opacity-90 sm:text-lg">
-              Proprietários bloqueiam datas e definem diárias. Corretores e imobiliárias autorizados enxergam a disponibilidade em tempo real.
+              Sua carteira de imóveis, sempre ligada ao proprietário.
             </p>
+            <div className="mt-6 max-w-sm rounded-md bg-card p-2 text-card-foreground"><SegmentSelect value={undefined} onChange={(segmento) => navigate({ to: '/painel', search: { segmento } })} /></div>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild size="lg" variant="accent"><Link to="/auth">Criar conta</Link></Button>
               <Button asChild size="lg" variant="glass"><Link to="/auth">Já tenho conta</Link></Button>

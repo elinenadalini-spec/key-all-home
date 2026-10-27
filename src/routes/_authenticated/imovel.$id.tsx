@@ -14,9 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { useServerFn } from '@tanstack/react-start';
+import { savePropertyChange } from '@/lib/property-changes.functions';
+import { asSegment, priceLabels, priceSuffix } from '@/lib/segments';
+import { SegmentSelect } from '@/components/SegmentSelect';
+import { PropertyHistory } from '@/components/PropertyHistory';
+import { Switch } from '@/components/ui/switch';
 
 export const Route = createFileRoute("/_authenticated/imovel/$id")({
-  head: () => ({ meta: [{ title: "Imóvel — Temporada" }, { name: "description", content: "Calendário e valores do imóvel." }] }),
+  head: () => ({ meta: [{ title: "Imóvel — Temporada" }, { name: "description", content: "Valores, informações e autorizações do imóvel." }, { property: 'og:title', content: 'Imóvel — Temporada' }, { property: 'og:description', content: 'Informações e histórico do imóvel autorizado.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
   component: PropertyPage,
 });
 
@@ -60,25 +66,27 @@ function PropertyPage() {
           <span className="flex items-center gap-1"><BedDouble className="h-4 w-4" />{p.bedrooms} quartos</span>
           <span className="flex items-center gap-1"><Bath className="h-4 w-4" />{p.bathrooms} banheiros</span>
           <span className="flex items-center gap-1"><Users className="h-4 w-4" />{p.guests} hóspedes</span>
-          <span className="font-semibold text-accent">Diária padrão {brl(p.base_price)}</span>
+          <span className="font-semibold text-accent">{brl(p.base_price)}{priceSuffix(p.segment)}</span>
+          <Badge variant="secondary">{asSegment(p.segment) === 'venda' ? 'Venda' : asSegment(p.segment) === 'anual' ? 'Anual' : 'Temporada'}</Badge>
         </div>
       </div>
 
-      <Tabs defaultValue="cal">
+      <Tabs defaultValue={p.segment === 'temporada' ? 'cal' : 'info'}>
         <TabsList className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="cal">Calendário</TabsTrigger>
+          {p.segment === 'temporada' && <TabsTrigger value="cal">Calendário</TabsTrigger>}
           <TabsTrigger value="fotos">Fotos</TabsTrigger>
           <TabsTrigger value="info">Informações</TabsTrigger>
           {canEdit && <TabsTrigger value="acesso">Autorizações</TabsTrigger>}
+          {canEdit && <TabsTrigger value="historico">Histórico</TabsTrigger>}
           <TabsTrigger value="termo">Termo</TabsTrigger>
         </TabsList>
-        <TabsContent value="cal" className="pt-4">
-          {canEdit && <p className="mb-3 text-sm text-muted-foreground">Toque nos dias para selecionar, depois bloqueie ou altere o valor.</p>}
+        {p.segment === 'temporada' && <TabsContent value="cal" className="pt-4">
           <PropertyCalendar propertyId={p.id} basePrice={Number(p.base_price)} canEdit={canEdit} />
-        </TabsContent>
+        </TabsContent>}
         <TabsContent value="fotos" className="pt-4"><Photos p={p} canEdit={canEdit} /></TabsContent>
         <TabsContent value="info" className="pt-4">{canEdit ? <InfoForm p={p} /> : <p className="whitespace-pre-line text-sm">{p.description || "Sem descrição."}</p>}</TabsContent>
         {canEdit && <TabsContent value="acesso" className="pt-4"><Access propertyId={p.id} /></TabsContent>}
+        {canEdit && <TabsContent value="historico" className="pt-4"><PropertyHistory propertyId={p.id} /></TabsContent>}
         <TabsContent value="termo" className="pt-4"><div className="rounded-2xl border bg-card p-5"><TermsText /></div></TabsContent>
       </Tabs>
     </div>
@@ -88,12 +96,16 @@ function PropertyPage() {
 function InfoForm({ p }: { p: Property }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const saveChange = useServerFn(savePropertyChange);
+  const [segment, setSegment] = useState(asSegment(p.segment));
+  const [saving, setSaving] = useState(false);
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const { error } = await supabase
-      .from("properties")
-      .update({
+    if (saving) return;
+    setSaving(true);
+    try { await saveChange({ data: { propertyId: p.id, patch: {
+         segment,
         title: String(f.get("title")),
         description: String(f.get("description")),
         address: String(f.get("address")),
@@ -102,12 +114,13 @@ function InfoForm({ p }: { p: Property }) {
         bathrooms: Number(f.get("bathrooms")),
         guests: Number(f.get("guests")),
         base_price: Number(f.get("base_price")),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", p.id);
-    if (error) { toast.error(error.message); return; }
+      } } }); }
+    catch { toast.error('Não foi possível salvar as informações.'); return; }
+    finally { setSaving(false); }
     toast.success("Informações salvas");
     qc.invalidateQueries({ queryKey: ["property", p.id] });
+    qc.invalidateQueries({ queryKey: ['properties'] });
+    qc.invalidateQueries({ queryKey: ['property-history', p.id] });
   }
   async function remove() {
     if (!confirm("Excluir este imóvel e todo o calendário?")) return;
@@ -117,19 +130,20 @@ function InfoForm({ p }: { p: Property }) {
   }
   return (
     <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
+      <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="property-segment">Segmento</Label><SegmentSelect id="property-segment" value={segment} onChange={setSegment} /></div>
       <F label="Nome" name="title" v={p.title} />
       <F label="Cidade" name="city" v={p.city} />
       <div className="sm:col-span-2"><F label="Endereço" name="address" v={p.address} /></div>
       <F label="Quartos" name="bedrooms" v={p.bedrooms} type="number" />
       <F label="Banheiros" name="bathrooms" v={p.bathrooms} type="number" />
       <F label="Hóspedes" name="guests" v={p.guests} type="number" />
-      <F label="Diária padrão (R$)" name="base_price" v={p.base_price} type="number" />
+      <F label={priceLabels[segment]} name="base_price" v={p.base_price} type="number" />
       <div className="space-y-1.5 sm:col-span-2">
         <Label>Descrição, regras e comodidades</Label>
         <Textarea name="description" rows={6} defaultValue={p.description ?? ""} />
       </div>
       <div className="flex gap-2 sm:col-span-2">
-        <Button>Salvar</Button>
+        <Button disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>
         <Button type="button" variant="ghost" className="text-destructive" onClick={remove}><Trash2 /> Excluir imóvel</Button>
       </div>
     </form>
@@ -149,9 +163,10 @@ function Photos({ p, canEdit }: { p: Property; canEdit: boolean }) {
   const qc = useQueryClient();
   const urls = usePhotoUrls(p.photos);
   const [busy, setBusy] = useState(false);
+  const saveChange = useServerFn(savePropertyChange);
 
   async function upload(files: FileList | null) {
-    if (!files?.length) return;
+    if (!files?.length || busy || !canEdit) return;
     setBusy(true);
     const added: string[] = [];
     for (const file of Array.from(files)) {
@@ -160,14 +175,22 @@ function Photos({ p, canEdit }: { p: Property; canEdit: boolean }) {
       if (error) toast.error(error.message);
       else added.push(path);
     }
-    await supabase.from("properties").update({ photos: [...p.photos, ...added] }).eq("id", p.id);
+    try { if (added.length) await saveChange({ data: { propertyId: p.id, patch: { photos: [...p.photos, ...added] } } }); }
+    catch { toast.error('As fotos foram enviadas, mas não foi possível vinculá-las ao imóvel.'); }
     setBusy(false);
     qc.invalidateQueries({ queryKey: ["property", p.id] });
+    qc.invalidateQueries({ queryKey: ['property-history', p.id] });
   }
   async function remove(path: string) {
-    await supabase.storage.from(PHOTO_BUCKET).remove([path]);
-    await supabase.from("properties").update({ photos: p.photos.filter((x) => x !== path) }).eq("id", p.id);
+    if (busy || !canEdit) return;
+    setBusy(true);
+    try {
+      await saveChange({ data: { propertyId: p.id, patch: { photos: p.photos.filter((x) => x !== path) } } });
+      await supabase.storage.from(PHOTO_BUCKET).remove([path]);
+    } catch { toast.error('Não foi possível remover a foto.'); }
+    finally { setBusy(false); }
     qc.invalidateQueries({ queryKey: ["property", p.id] });
+    qc.invalidateQueries({ queryKey: ['property-history', p.id] });
   }
 
   return (
@@ -184,9 +207,9 @@ function Photos({ p, canEdit }: { p: Property; canEdit: boolean }) {
           <div key={path} className="relative aspect-square overflow-hidden rounded-xl bg-muted">
             {urls.data?.[path] && <img src={urls.data[path]} alt="" loading="lazy" className="h-full w-full object-cover" />}
             {canEdit && (
-              <button onClick={() => remove(path)} aria-label="Remover foto" className="absolute right-1.5 top-1.5 rounded-full bg-card/90 p-1.5 text-destructive">
+       <Button variant="ghost" size="icon" disabled={busy} onClick={() => remove(path)} aria-label="Remover foto" className="absolute right-1.5 top-1.5 bg-card/90 text-destructive">
                 <Trash2 className="h-4 w-4" />
-              </button>
+               </Button>
             )}
           </div>
         ))}
@@ -209,8 +232,9 @@ function Access({ propertyId }: { propertyId: string }) {
   const auths = useQuery({
     queryKey: ["auths", propertyId],
     queryFn: async () => {
-      const { data } = await supabase.from("authorizations").select("agent_id").eq("property_id", propertyId);
-      return new Set((data ?? []).map((a) => a.agent_id));
+      const { data, error } = await supabase.from("authorizations").select("agent_id, notifications_enabled").eq("property_id", propertyId);
+      if (error) throw error;
+      return new Map((data ?? []).map((a) => [a.agent_id, a.notifications_enabled]));
     },
   });
 
@@ -245,6 +269,11 @@ function Access({ propertyId }: { propertyId: string }) {
     await supabase.from("access_requests").delete().eq("property_id", propertyId).eq("agent_id", agentId);
     qc.invalidateQueries({ queryKey: ["auths", propertyId] });
   }
+  async function setNotifications(agentId: string, enabled: boolean) {
+    const { error } = await supabase.from('authorizations').update({ notifications_enabled: enabled }).eq('property_id', propertyId).eq('agent_id', agentId);
+    if (error) { toast.error('Não foi possível alterar os avisos.'); return; }
+    qc.invalidateQueries({ queryKey: ['auths', propertyId] });
+  }
 
   const byId = new Map((agents.data ?? []).map((a) => [a.id, a]));
   const list = (agents.data ?? []).filter((a) =>
@@ -256,7 +285,7 @@ function Access({ propertyId }: { propertyId: string }) {
       {(requests.data?.length ?? 0) > 0 && (
         <div className="space-y-2 rounded-2xl border border-accent/40 bg-accent/10 p-4">
           <p className="text-sm font-semibold">Pedidos de acesso</p>
-          {requests.data!.map((r) => {
+          {(requests.data ?? []).map((r) => {
             const a = byId.get(r.agent_id);
             return (
               <div key={r.id} className="flex flex-wrap items-center justify-between gap-2">
@@ -285,9 +314,12 @@ function Access({ propertyId }: { propertyId: string }) {
                 </div>
                 <p className="truncate text-xs text-muted-foreground">CRECI {a.creci}/{a.creci_uf} {a.city ? `· ${a.city}` : ""} {a.phone ? `· ${a.phone}` : ""}</p>
               </div>
-              <Button size="sm" variant={on ? "success" : "outline"} onClick={() => (on ? revoke(a.id) : setPendingAgent({ id: a.id }))}>
+               <div className="flex shrink-0 flex-col items-end gap-2">
+               <Button size="sm" variant={on ? "success" : "outline"} onClick={() => (on ? revoke(a.id) : setPendingAgent({ id: a.id }))}>
                 {on ? <><Check /> Autorizado</> : "Autorizar"}
               </Button>
+               {on && <label className="flex items-center gap-2 text-xs"><Switch aria-label={`Notificações para ${a.company_name || a.full_name}`} checked={auths.data?.get(a.id) ?? true} onCheckedChange={(enabled) => setNotifications(a.id, enabled)} />Avisos internos</label>}
+               </div>
             </div>
           );
         })}
