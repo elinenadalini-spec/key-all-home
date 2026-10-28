@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useServerFn } from '@tanstack/react-start';
 import { savePropertyChange } from '@/lib/property-changes.functions';
-import { asSegment, priceLabels, priceSuffix } from '@/lib/segments';
+import { asSegment, changeSchema, priceLabels, priceSuffix } from '@/lib/segments';
 import { SegmentSelect } from '@/components/SegmentSelect';
 import { PropertyHistory } from '@/components/PropertyHistory';
 import { Switch } from '@/components/ui/switch';
@@ -84,7 +84,7 @@ function PropertyPage() {
           <PropertyCalendar propertyId={p.id} basePrice={Number(p.base_price)} canEdit={canEdit} />
         </TabsContent>}
         <TabsContent value="fotos" className="pt-4"><Photos p={p} canEdit={canEdit} /></TabsContent>
-        <TabsContent value="info" className="pt-4">{canEdit ? <InfoForm p={p} /> : <p className="whitespace-pre-line text-sm">{p.description || "Sem descrição."}</p>}</TabsContent>
+        <TabsContent value="info" className="pt-4">{canEdit ? <InfoForm key={p.updated_at} p={p} /> : <p className="whitespace-pre-line text-sm">{p.description || "Sem descrição."}</p>}</TabsContent>
         {canEdit && <TabsContent value="acesso" className="pt-4"><Access propertyId={p.id} /></TabsContent>}
         {canEdit && <TabsContent value="historico" className="pt-4"><PropertyHistory propertyId={p.id} /></TabsContent>}
         <TabsContent value="termo" className="pt-4"><div className="rounded-2xl border bg-card p-5"><TermsText /></div></TabsContent>
@@ -104,7 +104,7 @@ function InfoForm({ p }: { p: Property }) {
     const f = new FormData(e.currentTarget);
     if (saving) return;
     setSaving(true);
-    try { await saveChange({ data: { propertyId: p.id, patch: {
+    try { const input = changeSchema.safeParse({ propertyId: p.id, patch: {
          segment,
         title: String(f.get("title")),
         description: String(f.get("description")),
@@ -114,7 +114,9 @@ function InfoForm({ p }: { p: Property }) {
         bathrooms: Number(f.get("bathrooms")),
         guests: Number(f.get("guests")),
         base_price: Number(f.get("base_price")),
-      } } }); }
+      } });
+      if (!input.success) { toast.error('Confira o nome, os valores e as quantidades antes de salvar.'); return; }
+      await saveChange({ data: input.data }); }
     catch { toast.error('Não foi possível salvar as informações.'); return; }
     finally { setSaving(false); }
     toast.success("Informações salvas");
@@ -154,7 +156,7 @@ function F({ label, name, v, type = "text" }: { label: string; name: string; v: 
   return (
     <div className="space-y-1.5">
       <Label htmlFor={name}>{label}</Label>
-      <Input id={name} name={name} type={type} step={type === "number" ? "0.01" : undefined} defaultValue={v ?? ""} />
+      <Input id={name} name={name} type={type} required={type === 'number' || name === 'title'} min={type === 'number' ? (name === 'guests' ? 1 : 0) : undefined} step={type === "number" ? (name === 'base_price' ? '0.01' : '1') : undefined} defaultValue={v ?? ""} />
     </div>
   );
 }
@@ -165,32 +167,52 @@ function Photos({ p, canEdit }: { p: Property; canEdit: boolean }) {
   const [busy, setBusy] = useState(false);
   const saveChange = useServerFn(savePropertyChange);
 
+  async function refreshPhotos() {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ['property', p.id] }),
+      qc.invalidateQueries({ queryKey: ['properties'] }),
+      qc.invalidateQueries({ queryKey: ['network-props'] }),
+      qc.invalidateQueries({ queryKey: ['property-history', p.id] }),
+    ]);
+  }
+
   async function upload(files: FileList | null) {
     if (!files?.length || busy || !canEdit) return;
     setBusy(true);
     const added: string[] = [];
-    for (const file of Array.from(files)) {
-      const path = `${p.owner_id}/${p.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.]/g, "_")}`;
-      const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, file);
-      if (error) toast.error(error.message);
-      else added.push(path);
-    }
-    try { if (added.length) await saveChange({ data: { propertyId: p.id, patch: { photos: [...p.photos, ...added] } } }); }
-    catch { toast.error('As fotos foram enviadas, mas não foi possível vinculá-las ao imóvel.'); }
-    setBusy(false);
-    qc.invalidateQueries({ queryKey: ["property", p.id] });
-    qc.invalidateQueries({ queryKey: ['property-history', p.id] });
+    let linked = false;
+    try {
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) continue;
+        const path = `${p.owner_id}/${p.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.]/g, "_")}`;
+        const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, file);
+        if (!error) added.push(path);
+      }
+      if (!added.length) { toast.error('Nenhuma foto foi salva. Verifique os arquivos e sua conexão.'); return; }
+      await saveChange({ data: { propertyId: p.id, patch: { photos: [...p.photos, ...added] } } });
+      linked = true;
+      await refreshPhotos();
+      if (added.length === files.length) toast.success('Fotos salvas');
+      else toast.warning(`${added.length} de ${files.length} fotos salvas. Tente enviar as restantes novamente.`);
+    } catch {
+      if (!linked && added.length) {
+        const { error } = await supabase.storage.from(PHOTO_BUCKET).remove(added);
+        if (error) toast.warning('Arquivos não vinculados aguardam limpeza.');
+      }
+      toast.error('Não foi possível salvar as fotos. Tente novamente.');
+    } finally { setBusy(false); }
   }
   async function remove(path: string) {
     if (busy || !canEdit) return;
     setBusy(true);
     try {
       await saveChange({ data: { propertyId: p.id, patch: { photos: p.photos.filter((x) => x !== path) } } });
-      await supabase.storage.from(PHOTO_BUCKET).remove([path]);
+      const { error } = await supabase.storage.from(PHOTO_BUCKET).remove([path]);
+      if (error) toast.warning('Foto retirada do imóvel, mas o arquivo não pôde ser apagado.');
+      else toast.success('Foto removida');
     } catch { toast.error('Não foi possível remover a foto.'); }
     finally { setBusy(false); }
-    qc.invalidateQueries({ queryKey: ["property", p.id] });
-    qc.invalidateQueries({ queryKey: ['property-history', p.id] });
+    await refreshPhotos();
   }
 
   return (
@@ -198,10 +220,11 @@ function Photos({ p, canEdit }: { p: Property; canEdit: boolean }) {
       {canEdit && (
         <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed p-6 text-sm text-muted-foreground hover:bg-muted">
           <ImagePlus className="h-5 w-5" /> {busy ? "Enviando…" : "Adicionar fotos"}
-          <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => upload(e.target.files)} />
+          <input type="file" accept="image/*" multiple disabled={busy} className="hidden" onChange={(e) => { const input = e.currentTarget; void upload(input.files).finally(() => { input.value = ''; }); }} />
         </label>
       )}
       {p.photos.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma foto ainda.</p>}
+      {urls.isError && <p className="text-sm text-destructive">Não foi possível carregar as fotos. <Button type="button" variant="link" onClick={() => urls.refetch()}>Tentar novamente</Button></p>}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {p.photos.map((path) => (
           <div key={path} className="relative aspect-square overflow-hidden rounded-xl bg-muted">
