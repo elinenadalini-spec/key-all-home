@@ -18,3 +18,4 @@
 - Property changes from the UI use an authenticated server function, owner verification, and a service-only atomic database RPC; RLS still controls reads and direct writes are audited with unavailable IP when absent. Why: capture edge-observed IP and persist immutable history plus authorized-recipient internal notifications together.
 - Property segment selects filter both authorized inventory and limited network-cover RPC results; existing properties default to the original segment. Why: preserve per-property authorization across categories.
 - Internal notification delivery is a durable inbox insert, with per-authorization opt-out and recipient read acknowledgements; IP-bearing history is owner-only. Why: avoid exposing audit IPs or describing inbox persistence as email delivery.
+- Calendar edits use the shared calendarDayChange helper and include the stored note in each day payload. Why: blocking dates or changing prices must not erase unrelated observations.
