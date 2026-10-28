@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { asSegment, changeSchema, priceSuffix, segmentLabels } from '@/lib/segments';
+import { asSegment, calendarDayChange, changeSchema, priceSuffix, segmentLabels } from '@/lib/segments';
 
 describe('Segmentos e valores', () => {
+  it('preserva observações e diária ao bloquear ou liberar uma data', () => {
+    const current = { day: '2026-10-30', price: 650.25, blocked: false, note: 'Observação do proprietário' };
+    expect(calendarDayChange(current.day, current, { blocked: true })).toEqual({ ...current, blocked: true });
+    expect(calendarDayChange(current.day, { ...current, blocked: true }, { blocked: false })).toEqual(current);
+  });
+  it('preserva observações e bloqueio ao alterar ou restaurar a diária', () => {
+    const current = { day: '2026-10-30', price: 650.25, blocked: true, note: 'Observação do proprietário' };
+    expect(calendarDayChange(current.day, current, { price: 700.50 })).toEqual({ ...current, price: 700.50 });
+    expect(calendarDayChange(current.day, current, { price: null })).toEqual({ ...current, price: null });
+  });
   it('aceita os três segmentos solicitados e rejeita outros', () => {
     expect(['venda','anual','temporada'].map(asSegment)).toEqual(['venda','anual','temporada']);
     expect(() => asSegment('comercial')).toThrow();

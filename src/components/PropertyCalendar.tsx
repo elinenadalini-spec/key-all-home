@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useServerFn } from '@tanstack/react-start';
 import { savePropertyChange } from '@/lib/property-changes.functions';
+import { calendarDayChange, type CalendarDay } from '@/lib/segments';
 
-type Day = { day: string; price: number | null; blocked: boolean };
+type Day = CalendarDay;
 
 export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyId: string; basePrice: number; canEdit: boolean }) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
@@ -29,13 +30,13 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
     queryFn: async () => {
       const { data, error } = await supabase
         .from("property_days")
-        .select("day, price, blocked")
+        .select("day, price, blocked, note")
         .eq("property_id", propertyId)
         .gte("day", from)
         .lte("day", to);
       if (error) throw error;
       const map: Record<string, Day> = {};
-      (data ?? []).forEach((d) => (map[d.day] = { day: d.day, price: d.price === null ? null : Number(d.price), blocked: d.blocked }));
+      (data ?? []).forEach((d) => (map[d.day] = { day: d.day, price: d.price === null ? null : Number(d.price), blocked: d.blocked, note: d.note }));
       return map;
     },
   });
@@ -73,16 +74,7 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
   async function apply(patch: { blocked?: boolean; price?: number | null }) {
     if (saving || !canEdit || !sel.size) return;
     setSaving(true);
-    const rows = [...sel].map((d) => {
-      const cur = days.data?.[d];
-      return {
-        property_id: propertyId,
-        day: d,
-        blocked: patch.blocked ?? cur?.blocked ?? false,
-        price: patch.price !== undefined ? patch.price : cur?.price ?? null,
-        updated_at: new Date().toISOString(),
-      };
-    });
+    const rows = [...sel].map((d) => calendarDayChange(d, days.data?.[d], patch));
     try { await saveChange({ data: { propertyId, patch: {}, days: rows } }); }
     catch { toast.error('Não foi possível atualizar os dias.'); return; }
     finally { setSaving(false); }
