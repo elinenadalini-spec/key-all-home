@@ -36,6 +36,13 @@
       "when": 1793076993424,
       "tag": "0004_restrict_audit_notification_writes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793174353789,
+      "tag": "0005_owner_directory",
+      "breakpoints": true
     }
   ]
 }
