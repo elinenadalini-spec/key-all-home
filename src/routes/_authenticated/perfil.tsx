@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { OwnerDirectory } from '@/components/OwnerDirectory';
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({ meta: [{ title: "Meu cadastro — Temporada" }, { name: "description", content: "Dados pessoais, contatos e bancários." }, { property: 'og:title', content: 'Meu cadastro — Temporada' }, { property: 'og:description', content: 'Cadastro pessoal e contatos na Temporada.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
@@ -18,20 +20,29 @@ const statusLabel: Record<string, string> = { pending: "Em análise", approved: 
 function Perfil() {
   const { data: me } = useMe();
   const qc = useQueryClient();
+  const [saving, setSaving] = useState(false);
   const p = me?.profile;
   if (!p) return null;
   const agent = p.account_type !== "owner";
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!p || saving) return;
     const f = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
-    const { error } = await supabase.from("profiles").update(f as Partial<Profile>).eq("id", p!.id);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Cadastro atualizado");
-    qc.invalidateQueries({ queryKey: ["me"] });
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("profiles").update(f as Partial<Profile>).eq("id", p.id).select('id').single();
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["me"] });
+      await qc.invalidateQueries({ queryKey: ['owner-directory'] });
+      toast.success("Cadastro atualizado");
+    } catch { toast.error('Não foi possível salvar o cadastro. Verifique sua conexão e tente novamente.'); }
+    finally { setSaving(false); }
   }
 
   return (
+    <div className="space-y-8">
+      <OwnerDirectory />
     <form onSubmit={save} className="space-y-8">
       <div className="flex items-center gap-3">
         <h1 className="text-3xl font-bold">Meu cadastro</h1>
@@ -67,8 +78,9 @@ function Perfil() {
         <F n="pix_key" l="Chave PIX" v={p.pix_key} />
       </Section>
 
-      <Button size="lg">Salvar cadastro</Button>
+      <Button size="lg" disabled={saving}>{saving ? 'Salvando…' : 'Salvar cadastro'}</Button>
     </form>
+    </div>
   );
 }
 

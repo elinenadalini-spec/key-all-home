@@ -105,6 +105,39 @@ export type Database = {
           },
         ]
       }
+      owner_directory: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_demo: boolean
+          phone: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_demo?: boolean
+          phone?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_demo?: boolean
+          phone?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number

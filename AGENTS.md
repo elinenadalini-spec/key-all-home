@@ -19,3 +19,4 @@
 - Property segment selects filter both authorized inventory and limited network-cover RPC results; existing properties default to the original segment. Why: preserve per-property authorization across categories.
 - Internal notification delivery is a durable inbox insert, with per-authorization opt-out and recipient read acknowledgements; IP-bearing history is owner-only. Why: avoid exposing audit IPs or describing inbox persistence as email delivery.
 - Calendar edits use the shared calendarDayChange helper and include the stored note in each day payload. Why: blocking dates or changing prices must not erase unrelated observations.
+- The Cadastro owner directory combines RLS-visible profiles with admin-only directory contacts; demo contacts are not auth accounts. Why: show searchable examples without granting access or exposing unrelated owners to agents.
