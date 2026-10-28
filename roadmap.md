@@ -1,4 +1,6 @@
 # Alterações
+- [ ] Verificar e corrigir salvamento de cadastro, informações e fotos com leitura após salvar.
+- [ ] Pesquisa de proprietários no Cadastro, lista alfabética e dez registros fictícios identificados, preservando acesso restrito.
 - [x] Seleção Venda / Anual / Temporada e cadastro vinculado ao proprietário.
 - [x] Atualização de valores e histórico com data, hora e IP observado pelo servidor (ausente quando a conexão não o informa).
 - [x] Avisos internos apenas aos profissionais autorizados, controle por autorização e histórico de envio.
