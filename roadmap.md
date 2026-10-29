@@ -1,5 +1,5 @@
 # Alterações
-- [ ] Cadastrar nove imóveis fictícios em Jurerê (três Venda, três Anual, três Temporada), com fotos privadas e vínculo a proprietários de teste; conferir na prévia.
+- [x] Cadastrados nove imóveis fictícios em Jurerê (três Venda, três Anual, três Temporada), com fotos privadas e vínculo ao proprietário de teste existente; títulos, valores, endereços e fotos dos nove conferidos na prévia autenticada, sem alterar imóveis reais ou autorizações.
 - [x] Salvamento de cadastro, informações e fotos conferido com leitura após recarregar; validações, confirmação e falhas de fotos reforçadas.
 - [x] Pesquisa de proprietários no Cadastro, lista alfabética e dez registros fictícios identificados, preservando acesso restrito; nove testes aprovados.
 - [x] Seleção Venda / Anual / Temporada e cadastro vinculado ao proprietário.
