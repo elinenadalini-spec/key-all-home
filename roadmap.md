@@ -1,4 +1,5 @@
 # Alterações
+- [ ] Retomar e completar nove imóveis fictícios em Jurerê, três por segmento, e cadastros de teste de proprietário, corretor e imobiliária; conferir fotos e leitura na prévia.
 - [x] Cadastrados nove imóveis fictícios em Jurerê (três Venda, três Anual, três Temporada), com fotos privadas e vínculo ao proprietário de teste existente; títulos, valores, endereços e fotos dos nove conferidos na prévia autenticada, sem alterar imóveis reais ou autorizações.
 - [x] Salvamento de cadastro, informações e fotos conferido com leitura após recarregar; validações, confirmação e falhas de fotos reforçadas.
 - [x] Pesquisa de proprietários no Cadastro, lista alfabética e dez registros fictícios identificados, preservando acesso restrito; nove testes aprovados.
