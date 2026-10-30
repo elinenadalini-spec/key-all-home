@@ -12,9 +12,8 @@ import { TermsAcceptDialog } from "@/components/TermsAccept";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SegmentSelect } from '@/components/SegmentSelect';
 import { PropertyNotifications } from '@/components/PropertyNotifications';
-import { asSegment, priceLabels, priceSuffix, type Segment } from '@/lib/segments';
+import { asSegment, priceLabels, priceSuffix, segmentLabels, segments, type Segment } from '@/lib/segments';
 
 export const Route = createFileRoute("/_authenticated/painel")({
   validateSearch: (search: Record<string, unknown>): { segmento?: Segment } => ['venda','anual','temporada'].includes(String(search['segmento'])) ? { segmento: asSegment(String(search['segmento'])) } : {},
@@ -64,7 +63,19 @@ function Painel() {
         </div>
       )}
 
-      <div className="max-w-sm space-y-2"><Label htmlFor="segment">Segmento</Label><SegmentSelect id="segment" value={segment} onChange={(s) => navigate({ to: '/painel', search: { segmento: s } })} /></div>
+      <div className="grid grid-cols-3 gap-3">
+        {segments.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => navigate({ to: '/painel', search: { segmento: s } })}
+            className={`flex flex-col items-center gap-2 rounded-2xl border bg-card p-4 shadow-soft transition-colors ${segment === s ? 'border-primary bg-secondary text-primary' : 'text-muted-foreground hover:border-primary/40 hover:text-primary'}`}
+          >
+            <Home className="h-8 w-8" />
+            <span className="text-sm font-semibold">{segmentLabels[s]}</span>
+          </button>
+        ))}
+      </div>
 
       {segment && props.data && props.data.filter((p) => p.segment === segment).length === 0 && (
         <div className="rounded-2xl border border-dashed p-10 text-center text-muted-foreground">
