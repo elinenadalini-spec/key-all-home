@@ -64,17 +64,21 @@ function Painel() {
       )}
 
       <div className="grid grid-cols-3 gap-3">
-        {segments.map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => navigate({ to: '/painel', search: { segmento: s } })}
-            className={`flex flex-col items-center gap-2 rounded-2xl border bg-card p-4 shadow-soft transition-colors ${segment === s ? 'border-primary bg-secondary text-primary' : 'text-muted-foreground hover:border-primary/40 hover:text-primary'}`}
-          >
-            <Home className="h-8 w-8" />
-            <span className="text-sm font-semibold">{segmentLabels[s]}</span>
-          </button>
-        ))}
+        {segments.map((s) => {
+          const style = segmentStyles[s];
+          const active = segment === s;
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => navigate({ to: '/painel', search: { segmento: s } })}
+              className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-4 shadow-soft transition-colors ${active ? style.active : style.idle}`}
+            >
+              <Home className="h-8 w-8" />
+              <span className="text-sm font-semibold">{segmentLabels[s]}</span>
+            </button>
+          );
+        })}
       </div>
 
       {segment && props.data && props.data.filter((p) => p.segment === segment).length === 0 && (
