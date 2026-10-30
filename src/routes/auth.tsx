@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { segmentSchema } from '@/lib/segments';
+import beach from "@/assets/auth-beach.jpg";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -73,8 +74,10 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ocean px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl bg-card p-6 shadow-soft sm:p-8">
+    <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+      <img src={beach} alt="Praia com areia e mar" width={1920} height={1280} className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-veil" />
+      <div className="relative w-full max-w-md rounded-3xl bg-card p-6 shadow-soft sm:p-8">
         <Link to="/" className="font-display text-2xl font-bold text-primary">Temporada</Link>
         {sent ? (
           <div className="mt-6 space-y-2">
