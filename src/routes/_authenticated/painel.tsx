@@ -21,18 +21,21 @@ export const Route = createFileRoute("/_authenticated/painel")({
   component: Painel,
 });
 
-const segmentStyles: Record<Segment, { active: string; idle: string }> = {
+const segmentStyles: Record<Segment, { active: string; idle: string; badge: string }> = {
   venda: {
     active: 'border-accent bg-accent text-accent-foreground',
     idle: 'border-accent/40 bg-card text-accent hover:bg-accent/10',
+    badge: 'bg-accent/15 text-accent',
   },
   anual: {
     active: 'border-success bg-success text-success-foreground',
     idle: 'border-success/40 bg-card text-success hover:bg-success/10',
+    badge: 'bg-success/15 text-success',
   },
   temporada: {
     active: 'border-primary bg-primary text-primary-foreground',
     idle: 'border-primary/40 bg-card text-primary hover:bg-primary/10',
+    badge: 'bg-primary/15 text-primary',
   },
 };
 
@@ -82,6 +85,7 @@ function Painel() {
         {segments.map((s) => {
           const style = segmentStyles[s];
           const active = segment === s;
+          const count = props.data?.filter((p) => p.segment === s).length ?? 0;
           return (
             <button
               key={s}
@@ -91,6 +95,9 @@ function Painel() {
             >
               <Home className="h-8 w-8" />
               <span className="text-sm font-semibold">{segmentLabels[s]}</span>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${active ? 'bg-background/25' : style.badge}`}>
+                {count} {count === 1 ? 'imóvel' : 'imóveis'}
+              </span>
             </button>
           );
         })}
