@@ -21,6 +21,21 @@ export const Route = createFileRoute("/_authenticated/painel")({
   component: Painel,
 });
 
+const segmentStyles: Record<Segment, { active: string; idle: string }> = {
+  venda: {
+    active: 'border-accent bg-accent text-accent-foreground',
+    idle: 'border-accent/40 bg-card text-accent hover:bg-accent/10',
+  },
+  anual: {
+    active: 'border-success bg-success text-success-foreground',
+    idle: 'border-success/40 bg-card text-success hover:bg-success/10',
+  },
+  temporada: {
+    active: 'border-primary bg-primary text-primary-foreground',
+    idle: 'border-primary/40 bg-card text-primary hover:bg-primary/10',
+  },
+};
+
 function Painel() {
   const { data: me } = useMe();
   const search = Route.useSearch();
