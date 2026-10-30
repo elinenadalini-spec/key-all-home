@@ -82,6 +82,7 @@ function Painel() {
         {segments.map((s) => {
           const style = segmentStyles[s];
           const active = segment === s;
+          const count = props.data?.filter((p) => p.segment === s).length ?? 0;
           return (
             <button
               key={s}
@@ -91,6 +92,9 @@ function Painel() {
             >
               <Home className="h-8 w-8" />
               <span className="text-sm font-semibold">{segmentLabels[s]}</span>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${active ? 'bg-background/25' : style.badge}`}>
+                {count} {count === 1 ? 'imóvel' : 'imóveis'}
+              </span>
             </button>
           );
         })}
