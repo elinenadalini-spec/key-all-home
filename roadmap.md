@@ -1,4 +1,5 @@
 # Alterações
+- [ ] Conferir na prévia os nove imóveis fictícios (três por segmento), campos/fotos/vínculos, cadastros de proprietário/corretor/imobiliária e acesso individual; corrigir falhas encontradas sem alterar a conta administrativa.
 - [x] Retomados os nove imóveis fictícios em Jurerê sem duplicar: três por segmento, com todos os campos e fotos conferidos na prévia pela conta proprietária de teste. Completados os perfis fictícios de proprietário, corretor e imobiliária (reaproveitado profissional de teste sem autorizações); dez contatos fictícios do diretório atualizados para Jurerê. Dados reais e autorizações preservados.
 - [x] Cadastrados nove imóveis fictícios em Jurerê (três Venda, três Anual, três Temporada), com fotos privadas e vínculo ao proprietário de teste existente; títulos, valores, endereços e fotos dos nove conferidos na prévia autenticada, sem alterar imóveis reais ou autorizações.
 - [x] Salvamento de cadastro, informações e fotos conferido com leitura após recarregar; validações, confirmação e falhas de fotos reforçadas.
