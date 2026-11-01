@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Structured property amenities and room/garage counts are persisted in properties through the existing atomic change RPC and shown read-only to authorized viewers; descriptions remain separate. Why: preserve searchable structured information, ownership restrictions and auditing.
 - Access control lives in RLS (owner / authorized approved agent / admin via has_role & agent_has_access); UI queries the browser client directly. Why: one source of truth for permissions.
 - Inventory owner filtering applies only to non-admin owners; administrators read the full RLS-visible inventory even when they also hold the owner role. Why: administrators must see properties linked to other owners without transferring ownership.
 - Property photos are in a private bucket under `<owner_id>/<property_id>/...` and shown via signed URLs. Why: workspace blocks public buckets and agents must only see authorized properties.

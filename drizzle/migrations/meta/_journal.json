@@ -43,6 +43,13 @@
       "when": 1793174353789,
       "tag": "0005_owner_directory",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793551377626,
+      "tag": "0006_property_features",
+      "breakpoints": true
     }
   ]
 }

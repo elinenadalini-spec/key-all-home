@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { featureOptions } from './property-features';
 
 export const segmentSchema = z.enum(['venda', 'anual', 'temporada']);
 export type Segment = z.infer<typeof segmentSchema>;
@@ -13,6 +14,6 @@ export function calendarDayChange(day: string, current: CalendarDay | undefined,
 }
 export const changeSchema = z.object({
   propertyId: z.string().uuid(),
-  patch: z.object({ title: z.string().min(1).optional(), description: z.string().optional(), address: z.string().optional(), city: z.string().optional(), bedrooms: z.number().int().nonnegative().optional(), bathrooms: z.number().int().nonnegative().optional(), guests: z.number().int().positive().optional(), base_price: z.number().finite().nonnegative().optional(), segment: segmentSchema.optional(), photos: z.array(z.string()).optional() }).strict().default({}),
+  patch: z.object({ title: z.string().min(1).optional(), description: z.string().optional(), address: z.string().optional(), city: z.string().optional(), bedrooms: z.number().int().nonnegative().optional(), bathrooms: z.number().int().nonnegative().optional(), guests: z.number().int().positive().optional(), suites: z.number().int().nonnegative().optional(), garage_spaces: z.number().int().nonnegative().optional(), amenities: z.array(z.string().refine((value) => featureOptions.includes(value))).max(featureOptions.length).transform((values) => [...new Set(values)]).optional(), base_price: z.number().finite().nonnegative().optional(), segment: segmentSchema.optional(), photos: z.array(z.string()).optional() }).strict().default({}),
   days: z.array(z.object({ day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), price: z.number().finite().nonnegative().nullable(), blocked: z.boolean(), note: z.string().nullable().optional() })).max(366).optional(),
 });
