@@ -11,6 +11,7 @@
 
 ## Architecture rules
 - Access control lives in RLS (owner / authorized approved agent / admin via has_role & agent_has_access); UI queries the browser client directly. Why: one source of truth for permissions.
+- Inventory owner filtering applies only to non-admin owners; administrators read the full RLS-visible inventory even when they also hold the owner role. Why: administrators must see properties linked to other owners without transferring ownership.
 - Property photos are in a private bucket under `<owner_id>/<property_id>/...` and shown via signed URLs. Why: workspace blocks public buckets and agents must only see authorized properties.
 - The first account ever created gets the admin role (handle_new_user trigger). Why: bootstraps the portfolio manager without manual SQL.
 - Agent "network" visibility (owner contacts, other properties' cover photo) is exposed only via security-definer RPCs (agent_owner_contacts, agent_network_properties) gated by agent_connected_to_owner; full property access still requires an authorizations row. Why: agents must never read unauthorized property rows directly.

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PropertyNotifications } from '@/components/PropertyNotifications';
 import { asSegment, priceLabels, priceSuffix, segmentLabels, segments, type Segment } from '@/lib/segments';
+import { inventoryOwnerFilter } from '@/lib/property-inventory';
 
 export const Route = createFileRoute("/_authenticated/painel")({
   validateSearch: (search: Record<string, unknown>): { segmento?: Segment } => ['venda','anual','temporada'].includes(String(search['segmento'])) ? { segmento: asSegment(String(search['segmento'])) } : {},
@@ -45,12 +46,13 @@ function Painel() {
   const navigate = useNavigate();
   const segment = search.segmento;
   const props = useQuery({
-    queryKey: ["properties", me?.user.id, me?.isOwner],
+    queryKey: ["properties", me?.user.id, me?.isOwner, me?.isAdmin],
     enabled: !!me,
     queryFn: async () => {
       let q = supabase.from("properties").select("*").order("created_at", { ascending: false });
       if (!me) return [];
-      if (me.isOwner) q = q.eq("owner_id", me.user.id);
+      const ownerId = inventoryOwnerFilter(me);
+      if (ownerId) q = q.eq("owner_id", ownerId);
       const { data, error } = await q;
       if (error) throw error;
       return data as Property[];
@@ -65,7 +67,7 @@ function Painel() {
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">Olá, {me.profile?.full_name?.split(" ")[0] || "bem-vindo"}</p>
-          <h1 className="text-3xl font-bold">{me.isOwner ? "Meus imóveis" : "Imóveis autorizados"}</h1>
+          <h1 className="text-3xl font-bold">{me.isAdmin ? "Todos os imóveis" : me.isOwner ? "Meus imóveis" : "Imóveis autorizados"}</h1>
         </div>
         {me.isOwner && segment && <NewProperty segment={segment} />}
       </div>
@@ -106,7 +108,7 @@ function Painel() {
       {segment && props.data && props.data.filter((p) => p.segment === segment).length === 0 && (
         <div className="rounded-2xl border border-dashed p-10 text-center text-muted-foreground">
           <Home className="mx-auto mb-2 h-8 w-8" />
-          {me.isOwner ? "Cadastre seu primeiro imóvel para começar." : "Nenhum proprietário autorizou você ainda."}
+          {me.isAdmin ? "Nenhum imóvel cadastrado neste segmento." : me.isOwner ? "Cadastre seu primeiro imóvel para começar." : "Nenhum proprietário autorizou você ainda."}
         </div>
       )}
 
