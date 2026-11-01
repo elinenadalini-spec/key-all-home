@@ -240,49 +240,58 @@ export type Database = {
       properties: {
         Row: {
           address: string | null
+          amenities: string[]
           base_price: number
           bathrooms: number
           bedrooms: number
           city: string | null
           created_at: string
           description: string | null
+          garage_spaces: number
           guests: number
           id: string
           owner_id: string
           photos: string[]
           segment: string
+          suites: number
           title: string
           updated_at: string
         }
         Insert: {
           address?: string | null
+          amenities?: string[]
           base_price?: number
           bathrooms?: number
           bedrooms?: number
           city?: string | null
           created_at?: string
           description?: string | null
+          garage_spaces?: number
           guests?: number
           id?: string
           owner_id: string
           photos?: string[]
           segment?: string
+          suites?: number
           title: string
           updated_at?: string
         }
         Update: {
           address?: string | null
+          amenities?: string[]
           base_price?: number
           bathrooms?: number
           bedrooms?: number
           city?: string | null
           created_at?: string
           description?: string | null
+          garage_spaces?: number
           guests?: number
           id?: string
           owner_id?: string
           photos?: string[]
           segment?: string
+          suites?: number
           title?: string
           updated_at?: string
         }
