@@ -20,6 +20,7 @@ import { asSegment, changeSchema, priceLabels, priceSuffix } from '@/lib/segment
 import { SegmentSelect } from '@/components/SegmentSelect';
 import { PropertyHistory } from '@/components/PropertyHistory';
 import { Switch } from '@/components/ui/switch';
+import { FeatureChecklist, PropertyFeatureSummary } from '@/components/PropertyFeatures';
 
 export const Route = createFileRoute("/_authenticated/imovel/$id")({
   head: () => ({ meta: [{ title: "Imóvel — Temporada" }, { name: "description", content: "Valores, informações e autorizações do imóvel." }, { property: 'og:title', content: 'Imóvel — Temporada' }, { property: 'og:description', content: 'Informações e histórico do imóvel autorizado.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
@@ -84,7 +85,7 @@ function PropertyPage() {
           <PropertyCalendar propertyId={p.id} basePrice={Number(p.base_price)} canEdit={canEdit} />
         </TabsContent>}
         <TabsContent value="fotos" className="pt-4"><Photos p={p} canEdit={canEdit} /></TabsContent>
-        <TabsContent value="info" className="pt-4">{canEdit ? <InfoForm key={p.updated_at} p={p} /> : <p className="whitespace-pre-line text-sm">{p.description || "Sem descrição."}</p>}</TabsContent>
+        <TabsContent value="info" className="pt-4">{canEdit ? <InfoForm key={p.updated_at} p={p} /> : <PropertyFeatureSummary property={p} />}</TabsContent>
         {canEdit && <TabsContent value="acesso" className="pt-4"><Access propertyId={p.id} /></TabsContent>}
         {canEdit && <TabsContent value="historico" className="pt-4"><PropertyHistory propertyId={p.id} /></TabsContent>}
         <TabsContent value="termo" className="pt-4"><div className="rounded-2xl border bg-card p-5"><TermsText /></div></TabsContent>
@@ -98,6 +99,7 @@ function InfoForm({ p }: { p: Property }) {
   const navigate = useNavigate();
   const saveChange = useServerFn(savePropertyChange);
   const [segment, setSegment] = useState(asSegment(p.segment));
+  const [amenities, setAmenities] = useState(p.amenities ?? []);
   const [saving, setSaving] = useState(false);
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -111,6 +113,9 @@ function InfoForm({ p }: { p: Property }) {
         address: String(f.get("address")),
         city: String(f.get("city")),
         bedrooms: Number(f.get("bedrooms")),
+        suites: Number(f.get("suites")),
+        garage_spaces: Number(f.get("garage_spaces")),
+        amenities,
         bathrooms: Number(f.get("bathrooms")),
         guests: Number(f.get("guests")),
         base_price: Number(f.get("base_price")),
@@ -136,12 +141,16 @@ function InfoForm({ p }: { p: Property }) {
       <F label="Nome" name="title" v={p.title} />
       <F label="Cidade" name="city" v={p.city} />
       <div className="sm:col-span-2"><F label="Endereço" name="address" v={p.address} /></div>
-      <F label="Quartos" name="bedrooms" v={p.bedrooms} type="number" />
+      <F label={priceLabels[segment]} name="base_price" v={p.base_price} type="number" />
+      <h2 className="border-t pt-5 text-lg font-semibold sm:col-span-2">Quantidades</h2>
+      <F label="Suítes" name="suites" v={p.suites ?? 0} type="number" />
+      <F label="Dormitórios" name="bedrooms" v={p.bedrooms} type="number" />
       <F label="Banheiros" name="bathrooms" v={p.bathrooms} type="number" />
       <F label="Hóspedes" name="guests" v={p.guests} type="number" />
-      <F label={priceLabels[segment]} name="base_price" v={p.base_price} type="number" />
+      <F label="Vagas de garagem" name="garage_spaces" v={p.garage_spaces ?? 0} type="number" />
+      <section className="space-y-4 border-t pt-5 sm:col-span-2"><h2 className="text-lg font-semibold">Características</h2><FeatureChecklist value={amenities} onChange={setAmenities} disabled={saving} /></section>
       <div className="space-y-1.5 sm:col-span-2">
-        <Label>Descrição, regras e comodidades</Label>
+        <Label>Descrição e regras</Label>
         <Textarea name="description" rows={6} defaultValue={p.description ?? ""} />
       </div>
       <div className="flex gap-2 sm:col-span-2">
