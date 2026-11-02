@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useServerFn } from '@tanstack/react-start';
 import { savePropertyChange } from '@/lib/property-changes.functions';
@@ -63,7 +64,7 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
   const today = format(new Date(), "yyyy-MM-dd");
 
   function toggle(d: string) {
-    if (!canEdit || d < today) return;
+    if (!canEdit || saving || days.isPending || days.isError || d < today) return;
     setSel((s) => {
       const n = new Set(s);
       n.has(d) ? n.delete(d) : n.add(d);
@@ -72,7 +73,7 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
   }
 
   async function apply(patch: { blocked?: boolean; price?: number | null }) {
-    if (saving || !canEdit || !sel.size) return;
+    if (saving || !canEdit || !sel.size || days.isPending || days.isError) return;
     setSaving(true);
     const rows = [...sel].map((d) => calendarDayChange(d, days.data?.[d], patch));
     try { await saveChange({ data: { propertyId, patch: {}, days: rows } }); }
@@ -88,12 +89,12 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <button onClick={() => setMonth(subMonths(month, 1))} className="rounded-full p-2 hover:bg-muted" aria-label="Mês anterior"><ChevronLeft /></button>
+        <Button type="button" variant="ghost" size="icon" disabled={saving} onClick={() => { setMonth(subMonths(month, 1)); setSel(new Set()); setPrice(""); }} aria-label="Mês anterior"><ChevronLeft /></Button>
         <div className="text-center">
           <h3 className="text-xl font-semibold capitalize">{format(month, "MMMM yyyy", { locale: ptBR })}</h3>
           <p className="flex items-center justify-center gap-1 text-xs text-success"><Radio className="h-3 w-3" /> ao vivo</p>
         </div>
-        <button onClick={() => setMonth(addMonths(month, 1))} className="rounded-full p-2 hover:bg-muted" aria-label="Próximo mês"><ChevronRight /></button>
+        <Button type="button" variant="ghost" size="icon" disabled={saving} onClick={() => { setMonth(addMonths(month, 1)); setSel(new Set()); setPrice(""); }} aria-label="Próximo mês"><ChevronRight /></Button>
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase text-muted-foreground">
@@ -109,12 +110,16 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
           const past = d < today;
           const selected = sel.has(d);
           return (
-            <button
+            <Button
+              type="button"
+              variant="outline"
               key={d}
               onClick={() => toggle(d)}
-              disabled={!canEdit || past}
+              aria-label={`${format(date, 'dd/MM/yyyy')} · ${blocked ? 'Bloqueado' : 'Disponível'} · R$ ${p.toFixed(2).replace('.', ',')}`}
+              aria-pressed={selected}
+              disabled={!canEdit || past || saving || days.isPending || days.isError}
               className={cn(
-                "flex aspect-square flex-col items-center justify-center rounded-lg border text-sm transition",
+                "flex h-auto min-w-0 aspect-square flex-col gap-0 items-center justify-center rounded-lg border p-0 text-sm transition",
                 blocked ? "border-blocked bg-blocked text-blocked-foreground" : "bg-card",
                 past && "opacity-40",
                 selected && "ring-2 ring-accent ring-offset-1",
@@ -125,7 +130,7 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
               <span className={cn("mt-0.5 text-[9px] leading-none sm:text-[11px]", blocked ? "opacity-80" : info?.price != null ? "font-semibold text-accent" : "text-muted-foreground")}>
                 {blocked ? "bloq." : Math.round(p)}
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -137,20 +142,23 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
       </div>
 
       {canEdit && sel.size > 0 && (
-        <div className="sticky bottom-20 z-20 space-y-3 rounded-2xl border bg-card p-4 shadow-soft md:bottom-4">
+        <div className="space-y-3 rounded-lg border bg-card p-4 shadow-soft">
           <div className="flex items-center justify-between text-sm">
             <b>{sel.size} dia(s) selecionado(s)</b>
-            <button className="text-muted-foreground underline" onClick={() => setSel(new Set())}>limpar</button>
+            <Button type="button" variant="link" disabled={saving} onClick={() => { setSel(new Set()); setPrice(""); }}>Limpar</Button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <Button disabled={saving} variant="default" onClick={() => apply({ blocked: true })}><Lock /> Bloquear</Button>
-            <Button disabled={saving} variant="outline" onClick={() => apply({ blocked: false })}><Unlock /> Liberar</Button>
+            <Button disabled={saving} variant="outline" onClick={() => apply({ blocked: false })}><Unlock /> Desbloquear</Button>
           </div>
-          <div className="flex gap-2">
-            <Input type="number" step="0.01" min="0" placeholder={`Diária (padrão ${basePrice})`} value={price} onChange={(e) => setPrice(e.target.value)} />
-            <Button variant="accent" disabled={saving || !price || !Number.isFinite(Number(price)) || Number(price) < 0} onClick={() => apply({ price: Number(price) })}>Aplicar valor</Button>
+          <div className="space-y-1.5">
+            <Label htmlFor={`daily-price-${propertyId}`}>Diária das datas selecionadas (R$)</Label>
+            <div className="flex flex-wrap gap-2">
+            <Input id={`daily-price-${propertyId}`} className="min-w-0 flex-1 basis-32" type="number" step="0.01" min="0" disabled={saving} placeholder={`Padrão ${basePrice}`} value={price} onChange={(e) => setPrice(e.target.value)} />
+            <Button variant="accent" disabled={saving || !price || !Number.isFinite(Number(price)) || Number(price) < 0} onClick={() => apply({ price: Number(price) })}>Salvar valor</Button>
+            </div>
           </div>
-          <button className="text-xs text-muted-foreground underline" onClick={() => apply({ price: null })}>Voltar ao valor padrão</button>
+          <Button type="button" variant="link" disabled={saving} onClick={() => apply({ price: null })}>Voltar ao valor padrão</Button>
         </div>
       )}
     </div>

@@ -2,20 +2,21 @@ import { createServerFn } from '@tanstack/react-start';
 import { getRequestHeader } from '@tanstack/react-start/server';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import { changeSchema } from './segments';
-import { canEditPropertyInfo } from './property-editing';
+import { canEditPropertyCalendar, canEditPropertyInfo } from './property-editing';
 
 export const savePropertyChange = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => changeSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { data: property, error } = await context.supabase.from('properties').select('owner_id').eq('id', data.propertyId).maybeSingle();
+    const { data: property, error } = await context.supabase.from('properties').select('owner_id, segment').eq('id', data.propertyId).maybeSingle();
     if (error || !property) throw new Error('Você não pode alterar este imóvel.');
     const [{ data: owner }, { data: admin }] = await Promise.all([
       context.supabase.rpc('has_role', { _user_id: context.userId, _role: 'owner' }),
       context.supabase.rpc('has_role', { _user_id: context.userId, _role: 'admin' }),
     ]);
     if (!canEditPropertyInfo(property.owner_id, context.userId, owner === true, admin === true)) throw new Error('Você não pode alterar este imóvel.');
-    if (property.owner_id !== context.userId && (data.days !== undefined || data.patch.photos !== undefined)) throw new Error('Acesso restrito ao proprietário.');
+    if (data.days !== undefined && !canEditPropertyCalendar(property.owner_id, context.userId, owner === true, admin === true, property.segment)) throw new Error('Você não pode alterar este calendário.');
+    if (property.owner_id !== context.userId && data.patch.photos !== undefined) throw new Error('Acesso restrito ao proprietário.');
     // Only the deployment edge's client-IP header is used; never browser input or X-Forwarded-For.
     const observedIp = getRequestHeader('cf-connecting-ip') ?? null;
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
