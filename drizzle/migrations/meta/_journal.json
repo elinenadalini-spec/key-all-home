@@ -57,6 +57,13 @@
       "when": 1793581249492,
       "tag": "0007_admin_property_information_editing",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793581895768,
+      "tag": "0008_admin_seasonal_calendar_editing",
+      "breakpoints": true
     }
   ]
 }

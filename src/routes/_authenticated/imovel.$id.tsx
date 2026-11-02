@@ -21,7 +21,7 @@ import { SegmentSelect } from '@/components/SegmentSelect';
 import { PropertyHistory } from '@/components/PropertyHistory';
 import { Switch } from '@/components/ui/switch';
 import { FeatureChecklist, PropertyFeatureSummary } from '@/components/PropertyFeatures';
-import { canEditPropertyInfo } from '@/lib/property-editing';
+import { canEditPropertyCalendar, canEditPropertyInfo } from '@/lib/property-editing';
 
 export const Route = createFileRoute("/_authenticated/imovel/$id")({
   head: () => ({ meta: [{ title: "Imóvel — Temporada" }, { name: "description", content: "Valores, informações e autorizações do imóvel." }, { property: 'og:title', content: 'Imóvel — Temporada' }, { property: 'og:description', content: 'Informações e histórico do imóvel autorizado.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
@@ -58,6 +58,7 @@ function PropertyPage() {
   if (!p) return <p>Imóvel não encontrado ou sem autorização.</p>;
   const canEdit = p.owner_id === me.user.id;
   const canEditInfo = canEditPropertyInfo(p.owner_id, me.user.id, me.isOwner, me.isAdmin);
+  const canEditCalendar = canEditPropertyCalendar(p.owner_id, me.user.id, me.isOwner, me.isAdmin, p.segment);
 
   return (
     <div className="space-y-5">
@@ -84,7 +85,7 @@ function PropertyPage() {
           <TabsTrigger value="termo">Termo</TabsTrigger>
         </TabsList>
         {p.segment === 'temporada' && <TabsContent value="cal" className="pt-4">
-          <PropertyCalendar propertyId={p.id} basePrice={Number(p.base_price)} canEdit={canEdit} />
+          <PropertyCalendar propertyId={p.id} basePrice={Number(p.base_price)} canEdit={canEditCalendar} />
         </TabsContent>}
         <TabsContent value="fotos" className="pt-4"><Photos p={p} canEdit={canEdit} /></TabsContent>
         <TabsContent value="info" className="pt-4">{canEditInfo ? <InfoForm key={p.updated_at} p={p} canDelete={canEdit} /> : <PropertyFeatureSummary property={p} />}</TabsContent>
