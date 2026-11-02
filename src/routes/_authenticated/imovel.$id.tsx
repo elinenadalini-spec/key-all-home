@@ -21,6 +21,7 @@ import { SegmentSelect } from '@/components/SegmentSelect';
 import { PropertyHistory } from '@/components/PropertyHistory';
 import { Switch } from '@/components/ui/switch';
 import { FeatureChecklist, PropertyFeatureSummary } from '@/components/PropertyFeatures';
+import { canEditPropertyInfo } from '@/lib/property-editing';
 
 export const Route = createFileRoute("/_authenticated/imovel/$id")({
   head: () => ({ meta: [{ title: "Imóvel — Temporada" }, { name: "description", content: "Valores, informações e autorizações do imóvel." }, { property: 'og:title', content: 'Imóvel — Temporada' }, { property: 'og:description', content: 'Informações e histórico do imóvel autorizado.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
@@ -56,6 +57,7 @@ function PropertyPage() {
   if (prop.isLoading || !me) return <p className="text-muted-foreground">Carregando…</p>;
   if (!p) return <p>Imóvel não encontrado ou sem autorização.</p>;
   const canEdit = p.owner_id === me.user.id;
+  const canEditInfo = canEditPropertyInfo(p.owner_id, me.user.id, me.isOwner, me.isAdmin);
 
   return (
     <div className="space-y-5">
@@ -85,7 +87,7 @@ function PropertyPage() {
           <PropertyCalendar propertyId={p.id} basePrice={Number(p.base_price)} canEdit={canEdit} />
         </TabsContent>}
         <TabsContent value="fotos" className="pt-4"><Photos p={p} canEdit={canEdit} /></TabsContent>
-        <TabsContent value="info" className="pt-4">{canEdit ? <InfoForm key={p.updated_at} p={p} /> : <PropertyFeatureSummary property={p} />}</TabsContent>
+        <TabsContent value="info" className="pt-4">{canEditInfo ? <InfoForm key={p.updated_at} p={p} canDelete={canEdit} /> : <PropertyFeatureSummary property={p} />}</TabsContent>
         {canEdit && <TabsContent value="acesso" className="pt-4"><Access propertyId={p.id} /></TabsContent>}
         {canEdit && <TabsContent value="historico" className="pt-4"><PropertyHistory propertyId={p.id} /></TabsContent>}
         <TabsContent value="termo" className="pt-4"><div className="rounded-2xl border bg-card p-5"><TermsText /></div></TabsContent>
@@ -94,7 +96,7 @@ function PropertyPage() {
   );
 }
 
-function InfoForm({ p }: { p: Property }) {
+function InfoForm({ p, canDelete }: { p: Property; canDelete: boolean }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const saveChange = useServerFn(savePropertyChange);
@@ -154,8 +156,8 @@ function InfoForm({ p }: { p: Property }) {
         <Textarea name="description" rows={6} defaultValue={p.description ?? ""} />
       </div>
       <div className="flex gap-2 sm:col-span-2">
-        <Button disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>
-        <Button type="button" variant="ghost" className="text-destructive" onClick={remove}><Trash2 /> Excluir imóvel</Button>
+        <Button type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>
+        {canDelete && <Button type="button" variant="ghost" className="text-destructive" onClick={remove}><Trash2 /> Excluir imóvel</Button>}
       </div>
     </form>
   );
