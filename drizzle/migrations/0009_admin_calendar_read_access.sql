@@ -1,0 +1,1 @@
+CREATE POLICY "days admin read" ON public.property_days FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
