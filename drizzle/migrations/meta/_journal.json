@@ -64,6 +64,13 @@
       "when": 1793581895768,
       "tag": "0008_admin_seasonal_calendar_editing",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793665892907,
+      "tag": "0009_admin_calendar_read_access",
+      "breakpoints": true
     }
   ]
 }
