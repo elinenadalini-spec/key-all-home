@@ -239,7 +239,7 @@ function PropertyCard({ p, segment }: { p: Property; segment: Segment }) {
   );
 }
 
-function NewProperty({ segment }: { segment?: Segment }) {
+function NewProperty({ segment }: { segment: Segment | undefined }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Segment[]>(segment ? [segment] : []);
   const [prices, setPrices] = useState<Partial<Record<Segment, number | ''>>>({});
