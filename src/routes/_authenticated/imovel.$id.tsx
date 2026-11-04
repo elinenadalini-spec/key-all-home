@@ -76,7 +76,7 @@ function PropertyPage() {
         </div>
       </div>
 
-      <Tabs defaultValue={seasonal ? 'cal' : 'info'}>
+      <Tabs key={selected.join(',')} defaultValue={seasonal ? 'cal' : 'info'}>
         <TabsList className="w-full justify-start overflow-x-auto">
           {seasonal && <TabsTrigger value="cal">Calendário</TabsTrigger>}
           <TabsTrigger value="fotos">Fotos</TabsTrigger>
@@ -103,7 +103,7 @@ function InfoForm({ p, canDelete }: { p: Property; canDelete: boolean }) {
   const navigate = useNavigate();
   const saveChange = useServerFn(savePropertyChange);
   const [selected, setSelected] = useState(propertySegments(p));
-  const [prices, setPrices] = useState<Partial<Record<Segment, number | ''>>>(Object.fromEntries(propertySegments(p).map((s) => [s, propertyPrice(p, s)])));
+  const [prices, setPrices] = useState<Partial<Record<Segment, number | ''>>>({ venda: p.sale_price ?? '', anual: p.annual_price ?? '', temporada: p.seasonal_price ?? '' });
   const [amenities, setAmenities] = useState(p.amenities ?? []);
   const [saving, setSaving] = useState(false);
   async function save(e: React.FormEvent<HTMLFormElement>) {
