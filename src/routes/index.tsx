@@ -1,8 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarCheck, KeyRound, ShieldCheck, Wallet } from "lucide-react";
 import hero from "@/assets/hero.jpg";
 import { Button } from "@/components/ui/button";
-import { SegmentSelect } from '@/components/SegmentSelect';
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,7 +25,6 @@ const features = [
 ];
 
 function Index() {
-  const navigate = useNavigate();
   return (
     <div className="min-h-screen">
       <section className="relative min-h-[88vh] overflow-hidden">
@@ -42,7 +40,6 @@ function Index() {
             <p className="mt-4 text-base opacity-90 sm:text-lg">
               Sua carteira de imóveis, sempre ligada ao proprietário.
             </p>
-            <div className="mt-6 max-w-sm rounded-md bg-card p-2 text-card-foreground"><SegmentSelect value={undefined} onChange={(segmento) => { sessionStorage.setItem('selected-segment', segmento); navigate({ to: '/painel', search: { segmento } }); }} /></div>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild size="lg" variant="accent"><Link to="/auth">Criar conta</Link></Button>
               <Button asChild size="lg" variant="glass"><Link to="/auth">Já tenho conta</Link></Button>
