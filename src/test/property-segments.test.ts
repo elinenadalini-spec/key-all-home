@@ -1,7 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import { asSegment, calendarDayChange, changeSchema, priceSuffix, segmentLabels } from '@/lib/segments';
+import { asSegment, calendarDayChange, changeSchema, priceSuffix, segmentLabels, propertySegments, propertyPrice, selectedSegmentsSchema, segmentPricePatch } from '@/lib/segments';
 
 describe('Segmentos e valores', () => {
+  it('permite um, dois ou três segmentos distintos, nunca nenhum ou repetidos', () => {
+    expect(selectedSegmentsSchema.parse(['venda'])).toEqual(['venda']);
+    expect(selectedSegmentsSchema.parse(['venda', 'anual'])).toEqual(['venda', 'anual']);
+    expect(selectedSegmentsSchema.parse(['venda', 'anual', 'temporada'])).toEqual(['venda', 'anual', 'temporada']);
+    expect(() => selectedSegmentsSchema.parse([])).toThrow();
+    expect(() => selectedSegmentsSchema.parse(['venda', 'venda'])).toThrow();
+  });
+  it('lista o mesmo imóvel nos três segmentos e mantém valores independentes', () => {
+    const p = { segment: 'venda', segments: ['venda', 'anual', 'temporada'], sale_price: 900000, annual_price: 5000, seasonal_price: 800, base_price: 900000 };
+    expect(propertySegments(p)).toEqual(['venda', 'anual', 'temporada']);
+    expect(['venda', 'anual', 'temporada'].map(asSegment).map((s) => propertyPrice(p, s))).toEqual([900000, 5000, 800]);
+  });
+  it('exige um valor válido por segmento selecionado sem incluir campos inativos', () => {
+    expect(segmentPricePatch(['venda', 'temporada'], { venda: 900000, anual: 5000, temporada: 800 })).toEqual({ sale_price: 900000, seasonal_price: 800 });
+    expect(() => segmentPricePatch(['venda', 'anual'], { venda: 900000 })).toThrow();
+    expect(() => segmentPricePatch(['temporada'], { temporada: -1 })).toThrow();
+  });
+  it('preserva segmento e valor dos imóveis existentes', () => {
+    expect(propertySegments({ segment: 'anual' })).toEqual(['anual']);
+    expect(propertyPrice({ segment: 'anual', base_price: 5000 }, 'anual')).toBe(5000);
+  });
   it('preserva observações e diária ao bloquear ou liberar uma data', () => {
     const current = { day: '2026-10-30', price: 650.25, blocked: false, note: 'Observação do proprietário' };
     expect(calendarDayChange(current.day, current, { blocked: true })).toEqual({ ...current, blocked: true });

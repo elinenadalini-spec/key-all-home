@@ -241,6 +241,7 @@ export type Database = {
         Row: {
           address: string | null
           amenities: string[]
+          annual_price: number | null
           base_price: number
           bathrooms: number
           bedrooms: number
@@ -252,7 +253,10 @@ export type Database = {
           id: string
           owner_id: string
           photos: string[]
+          sale_price: number | null
+          seasonal_price: number | null
           segment: string
+          segments: string[] | null
           suites: number
           title: string
           updated_at: string
@@ -260,6 +264,7 @@ export type Database = {
         Insert: {
           address?: string | null
           amenities?: string[]
+          annual_price?: number | null
           base_price?: number
           bathrooms?: number
           bedrooms?: number
@@ -271,7 +276,10 @@ export type Database = {
           id?: string
           owner_id: string
           photos?: string[]
+          sale_price?: number | null
+          seasonal_price?: number | null
           segment?: string
+          segments?: string[] | null
           suites?: number
           title: string
           updated_at?: string
@@ -279,6 +287,7 @@ export type Database = {
         Update: {
           address?: string | null
           amenities?: string[]
+          annual_price?: number | null
           base_price?: number
           bathrooms?: number
           bedrooms?: number
@@ -290,7 +299,10 @@ export type Database = {
           id?: string
           owner_id?: string
           photos?: string[]
+          sale_price?: number | null
+          seasonal_price?: number | null
           segment?: string
+          segments?: string[] | null
           suites?: number
           title?: string
           updated_at?: string
@@ -470,6 +482,21 @@ export type Database = {
           id: string
           owner_id: string
           request_status: string
+          title: string
+        }[]
+      }
+      agent_network_properties_multi_segment: {
+        Args: never
+        Returns: {
+          bedrooms: number
+          city: string
+          cover: string
+          guests: number
+          has_access: boolean
+          id: string
+          owner_id: string
+          request_status: string
+          segments: string[]
           title: string
         }[]
       }

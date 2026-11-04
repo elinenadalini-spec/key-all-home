@@ -1,6 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { brl } from '@/lib/me';
+import { segmentLabels, segmentSchema } from '@/lib/segments';
+
+function historyValue(key: string, value: unknown): string {
+  if (['base_price', 'price', 'sale_price', 'annual_price', 'seasonal_price'].includes(key)) return value == null ? 'Não informado' : brl(Number(value));
+  if (key === 'segments' && Array.isArray(value)) return value.map((s) => { const parsed = segmentSchema.safeParse(s); return parsed.success ? segmentLabels[parsed.data] : String(s); }).join(', ');
+  if (Array.isArray(value)) return value.length ? value.join(', ') : 'Nenhuma';
+  return String(value ?? '—');
+}
 
 export function PropertyHistory({ propertyId }: { propertyId: string }) {
   const history = useQuery({ queryKey: ['property-history', propertyId], queryFn: async () => {
@@ -20,7 +28,7 @@ export function PropertyHistory({ propertyId }: { propertyId: string }) {
     const sent = history.data.notifications.filter((n) => n.update_id === event.id);
     return <article key={event.id} className="space-y-2 py-4 text-sm">
       <div className="flex flex-wrap justify-between gap-2"><b>{event.kind === 'calendar' ? `Calendário · ${after['day']}` : 'Dados do imóvel'}</b><time>{new Date(event.created_at).toLocaleString('pt-BR')}</time></div>
-      {Object.keys(after).filter((key) => JSON.stringify(after[key]) !== JSON.stringify(before[key])).map((key) => <p key={key} className="break-words"><span className="text-muted-foreground">{({ base_price: 'Valor', price: 'Diária', blocked: 'Bloqueio', title: 'Nome', description: 'Descrição', address: 'Endereço', city: 'Cidade', bedrooms: 'Dormitórios', bathrooms: 'Banheiros', suites: 'Suítes', garage_spaces: 'Vagas de garagem', amenities: 'Características', guests: 'Hóspedes', segment: 'Segmento', photos: 'Fotos', note: 'Observação' } as Record<string,string>)[key] ?? key}: </span>{key === 'base_price' || key === 'price' ? `${before[key] == null ? 'Padrão' : brl(Number(before[key]))} → ${after[key] == null ? 'Padrão' : brl(Number(after[key]))}` : key === 'photos' ? 'Fotos atualizadas' : key === 'amenities' ? `${Array.isArray(before[key]) && before[key].length ? before[key].join(', ') : 'Nenhuma'} → ${Array.isArray(after[key]) && after[key].length ? after[key].join(', ') : 'Nenhuma'}` : `${before[key] ?? '—'} → ${after[key] ?? '—'}`}</p>)}
+      {Object.keys(after).filter((key) => !(after['segments'] && ['segment', 'base_price'].includes(key)) && JSON.stringify(after[key]) !== JSON.stringify(before[key])).map((key) => <p key={key} className="break-words"><span className="text-muted-foreground">{({ base_price: 'Valor', sale_price: 'Valor de venda', annual_price: 'Aluguel mensal', seasonal_price: 'Diária padrão', segments: 'Segmentos', price: 'Diária', blocked: 'Bloqueio', title: 'Nome', description: 'Descrição', address: 'Endereço', city: 'Cidade', bedrooms: 'Dormitórios', bathrooms: 'Banheiros', suites: 'Suítes', garage_spaces: 'Vagas de garagem', amenities: 'Características', guests: 'Hóspedes', segment: 'Segmento', photos: 'Fotos', note: 'Observação' } as Record<string,string>)[key] ?? key}: </span>{key === 'photos' ? 'Fotos atualizadas' : `${historyValue(key, before[key])} → ${historyValue(key, after[key])}`}</p>)}
       <p className="text-xs text-muted-foreground">IP: {event.observed_ip ? String(event.observed_ip) : 'Não disponibilizado nesta conexão'}</p>
       <p className="text-xs text-muted-foreground">Avisos internos: {sent.filter((n) => n.status === 'delivered').length} enviados · {sent.filter((n) => n.read_at).length} lidos · {sent.filter((n) => n.status === 'disabled').length} desativados</p>
     </article>;

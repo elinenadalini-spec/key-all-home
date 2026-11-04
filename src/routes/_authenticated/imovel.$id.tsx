@@ -16,8 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useServerFn } from '@tanstack/react-start';
 import { savePropertyChange } from '@/lib/property-changes.functions';
-import { asSegment, changeSchema, priceLabels, priceSuffix } from '@/lib/segments';
-import { SegmentSelect } from '@/components/SegmentSelect';
+import { changeSchema, propertySegments, propertyPrice, segmentLabels, segmentPricePatch, priceSuffix, type Segment } from '@/lib/segments';
+import { SegmentCheckboxes, SegmentPriceInputs } from '@/components/PropertySegments';
 import { PropertyHistory } from '@/components/PropertyHistory';
 import { Switch } from '@/components/ui/switch';
 import { FeatureChecklist, PropertyFeatureSummary } from '@/components/PropertyFeatures';
@@ -58,7 +58,9 @@ function PropertyPage() {
   if (!p) return <p>Imóvel não encontrado ou sem autorização.</p>;
   const canEdit = p.owner_id === me.user.id;
   const canEditInfo = canEditPropertyInfo(p.owner_id, me.user.id, me.isOwner, me.isAdmin);
-  const canEditCalendar = canEditPropertyCalendar(p.owner_id, me.user.id, me.isOwner, me.isAdmin, p.segment);
+  const selected = propertySegments(p);
+  const seasonal = selected.includes('temporada');
+  const canEditCalendar = canEditPropertyCalendar(p.owner_id, me.user.id, me.isOwner, me.isAdmin, selected);
 
   return (
     <div className="space-y-5">
@@ -70,22 +72,21 @@ function PropertyPage() {
           <span className="flex items-center gap-1"><BedDouble className="h-4 w-4" />{p.bedrooms} quartos</span>
           <span className="flex items-center gap-1"><Bath className="h-4 w-4" />{p.bathrooms} banheiros</span>
           <span className="flex items-center gap-1"><Users className="h-4 w-4" />{p.guests} hóspedes</span>
-          <span className="font-semibold text-accent">{brl(p.base_price)}{priceSuffix(p.segment)}</span>
-          <Badge variant="secondary">{asSegment(p.segment) === 'venda' ? 'Venda' : asSegment(p.segment) === 'anual' ? 'Anual' : 'Temporada'}</Badge>
+          {selected.map((s) => <span key={s} className="flex items-center gap-2"><Badge variant="secondary">{segmentLabels[s]}</Badge><span className="font-semibold text-accent">{brl(propertyPrice(p, s))}{priceSuffix(s)}</span></span>)}
         </div>
       </div>
 
-      <Tabs defaultValue={p.segment === 'temporada' ? 'cal' : 'info'}>
+      <Tabs key={selected.join(',')} defaultValue={seasonal ? 'cal' : 'info'}>
         <TabsList className="w-full justify-start overflow-x-auto">
-          {p.segment === 'temporada' && <TabsTrigger value="cal">Calendário</TabsTrigger>}
+          {seasonal && <TabsTrigger value="cal">Calendário</TabsTrigger>}
           <TabsTrigger value="fotos">Fotos</TabsTrigger>
           <TabsTrigger value="info">Informações</TabsTrigger>
           {canEdit && <TabsTrigger value="acesso">Autorizações</TabsTrigger>}
           {canEdit && <TabsTrigger value="historico">Histórico</TabsTrigger>}
           <TabsTrigger value="termo">Termo</TabsTrigger>
         </TabsList>
-        {p.segment === 'temporada' && <TabsContent value="cal" className="pt-4">
-          <PropertyCalendar propertyId={p.id} basePrice={Number(p.base_price)} canEdit={canEditCalendar} />
+        {seasonal && <TabsContent value="cal" className="pt-4">
+          <PropertyCalendar propertyId={p.id} basePrice={propertyPrice(p, 'temporada')} canEdit={canEditCalendar} />
         </TabsContent>}
         <TabsContent value="fotos" className="pt-4"><Photos p={p} canEdit={canEdit} /></TabsContent>
         <TabsContent value="info" className="pt-4">{canEditInfo ? <InfoForm key={p.updated_at} p={p} canDelete={canEdit} /> : <PropertyFeatureSummary property={p} />}</TabsContent>
@@ -101,7 +102,8 @@ function InfoForm({ p, canDelete }: { p: Property; canDelete: boolean }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const saveChange = useServerFn(savePropertyChange);
-  const [segment, setSegment] = useState(asSegment(p.segment));
+  const [selected, setSelected] = useState(propertySegments(p));
+  const [prices, setPrices] = useState<Partial<Record<Segment, number | ''>>>({ venda: p.sale_price ?? '', anual: p.annual_price ?? '', temporada: p.seasonal_price ?? '' });
   const [amenities, setAmenities] = useState(p.amenities ?? []);
   const [saving, setSaving] = useState(false);
   async function save(e: React.FormEvent<HTMLFormElement>) {
@@ -110,7 +112,8 @@ function InfoForm({ p, canDelete }: { p: Property; canDelete: boolean }) {
     if (saving) return;
     setSaving(true);
     try { const input = changeSchema.safeParse({ propertyId: p.id, patch: {
-         segment,
+        segments: selected,
+        ...segmentPricePatch(selected, Object.fromEntries(selected.map((s) => [s, prices[s] === '' ? undefined : prices[s]]))),
         title: String(f.get("title")),
         description: String(f.get("description")),
         address: String(f.get("address")),
@@ -121,7 +124,6 @@ function InfoForm({ p, canDelete }: { p: Property; canDelete: boolean }) {
         amenities,
         bathrooms: Number(f.get("bathrooms")),
         guests: Number(f.get("guests")),
-        base_price: Number(f.get("base_price")),
       } });
       if (!input.success) { toast.error('Confira o nome, os valores e as quantidades antes de salvar.'); return; }
       await saveChange({ data: input.data }); }
@@ -130,6 +132,7 @@ function InfoForm({ p, canDelete }: { p: Property; canDelete: boolean }) {
     toast.success("Informações salvas");
     qc.invalidateQueries({ queryKey: ["property", p.id] });
     qc.invalidateQueries({ queryKey: ['properties'] });
+    qc.invalidateQueries({ queryKey: ['network-props'] });
     qc.invalidateQueries({ queryKey: ['property-history', p.id] });
   }
   async function remove() {
@@ -140,11 +143,11 @@ function InfoForm({ p, canDelete }: { p: Property; canDelete: boolean }) {
   }
   return (
     <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
-      <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="property-segment">Segmento</Label><SegmentSelect id="property-segment" value={segment} onChange={setSegment} /></div>
+      <div className="sm:col-span-2"><SegmentCheckboxes value={selected} onChange={setSelected} disabled={saving} /></div>
       <F label="Nome" name="title" v={p.title} />
       <F label="Cidade" name="city" v={p.city} />
       <div className="sm:col-span-2"><F label="Endereço" name="address" v={p.address} /></div>
-      <F label={priceLabels[segment]} name="base_price" v={p.base_price} type="number" />
+      <div className="sm:col-span-2"><SegmentPriceInputs selected={selected} prices={prices} onChange={(s, value) => setPrices((current) => ({ ...current, [s]: value }))} disabled={saving} /></div>
       <h2 className="border-t pt-5 text-lg font-semibold sm:col-span-2">Quantidades</h2>
       <F label="Suítes" name="suites" v={p.suites ?? 0} type="number" />
       <F label="Dormitórios" name="bedrooms" v={p.bedrooms} type="number" />

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { canEditPropertyCalendar, canEditPropertyInfo } from '@/lib/property-editing';
 describe('Edição de informações', () => {
+  it('libera o calendário quando Temporada é uma das atividades, sem ampliar acesso dos profissionais', () => {
+    expect(canEditPropertyCalendar('owner', 'admin', false, true, ['venda', 'temporada'])).toBe(true);
+    expect(canEditPropertyCalendar('owner', 'owner', true, false, ['anual', 'temporada'])).toBe(true);
+    expect(canEditPropertyCalendar('owner', 'agent', false, false, ['venda', 'anual', 'temporada'])).toBe(false);
+    expect(canEditPropertyCalendar('owner', 'admin', false, true, ['venda', 'anual'])).toBe(false);
+  });
   it('permite ao administrador alterar diárias e datas de Temporada de outro proprietário', () => {
     expect(canEditPropertyCalendar('owner', 'admin', false, true, 'temporada')).toBe(true);
   });

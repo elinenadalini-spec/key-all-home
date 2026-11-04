@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PropertyNotifications } from '@/components/PropertyNotifications';
-import { asSegment, priceLabels, priceSuffix, segmentLabels, segments, type Segment } from '@/lib/segments';
+import { asSegment, propertySegments, propertyPrice, segmentPricePatch, priceSuffix, segmentLabels, segments, type Segment } from '@/lib/segments';
+import { SegmentCheckboxes, SegmentPriceInputs } from '@/components/PropertySegments';
 import { inventoryOwnerFilter } from '@/lib/property-inventory';
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -69,7 +70,7 @@ function Painel() {
           <p className="text-sm text-muted-foreground">Olá, {me.profile?.full_name?.split(" ")[0] || "bem-vindo"}</p>
           <h1 className="text-3xl font-bold">{me.isAdmin ? "Todos os imóveis" : me.isOwner ? "Meus imóveis" : "Imóveis autorizados"}</h1>
         </div>
-        {me.isOwner && segment && <NewProperty segment={segment} />}
+        {me.isOwner && <NewProperty segment={segment} />}
       </div>
 
       {pending && (
@@ -87,7 +88,7 @@ function Painel() {
         {segments.map((s) => {
           const style = segmentStyles[s];
           const active = segment === s;
-          const count = props.data?.filter((p) => p.segment === s).length ?? 0;
+          const count = props.data?.filter((p) => propertySegments(p).includes(s)).length ?? 0;
           return (
             <button
               key={s}
@@ -105,7 +106,7 @@ function Painel() {
         })}
       </div>
 
-      {segment && props.data && props.data.filter((p) => p.segment === segment).length === 0 && (
+      {segment && props.data && props.data.filter((p) => propertySegments(p).includes(segment)).length === 0 && (
         <div className="rounded-2xl border border-dashed p-10 text-center text-muted-foreground">
           <Home className="mx-auto mb-2 h-8 w-8" />
           {me.isAdmin ? "Nenhum imóvel cadastrado neste segmento." : me.isOwner ? "Cadastre seu primeiro imóvel para começar." : "Nenhum proprietário autorizou você ainda."}
@@ -113,7 +114,7 @@ function Painel() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {segment && props.data?.filter((p) => p.segment === segment).map((p) => <PropertyCard key={p.id} p={p} />)}
+        {segment && props.data?.filter((p) => propertySegments(p).includes(segment)).map((p) => <PropertyCard key={p.id} p={p} segment={segment} />)}
       </div>
 
       {me.isAgent && !pending && <><PropertyNotifications />{segment && <AgentNetwork segment={segment} />}</>}
@@ -134,7 +135,7 @@ function AgentNetwork({ segment }: { segment: Segment }) {
   const others = useQuery({
     queryKey: ["network-props"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("agent_network_properties_segmented");
+      const { data, error } = await supabase.rpc("agent_network_properties_multi_segment");
       if (error) throw error;
       return data.filter((p) => !p.has_access);
     },
@@ -179,7 +180,7 @@ function AgentNetwork({ segment }: { segment: Segment }) {
           <h2 className="text-xl font-bold">Outros imóveis desses proprietários</h2>
           <p className="text-sm text-muted-foreground">Peça autorização para ver calendário, valores e todas as fotos.</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            {(others.data ?? []).filter((p) => p.segment === segment).map((p) => {
+            {(others.data ?? []).filter((p) => propertySegments(p).includes(segment)).map((p) => {
               const cover = p.cover ? covers.data?.[p.cover] : undefined;
               const owner = owners.data?.find((o) => o.id === p.owner_id);
               return (
@@ -215,7 +216,7 @@ function AgentNetwork({ segment }: { segment: Segment }) {
   );
 }
 
-function PropertyCard({ p }: { p: Property }) {
+function PropertyCard({ p, segment }: { p: Property; segment: Segment }) {
   const urls = usePhotoUrls(p.photos.slice(0, 1));
   const cover = p.photos[0] ? urls.data?.[p.photos[0]] : undefined;
   return (
@@ -231,48 +232,58 @@ function PropertyCard({ p }: { p: Property }) {
             <span className="flex items-center gap-1"><BedDouble className="h-4 w-4" />{p.bedrooms}</span>
             <span className="flex items-center gap-1"><Users className="h-4 w-4" />{p.guests}</span>
           </span>
-          <span className="font-semibold text-accent">{brl(p.base_price)}<span className="text-xs text-muted-foreground">{priceSuffix(p.segment)}</span></span>
+          <span className="font-semibold text-accent">{brl(propertyPrice(p, segment))}<span className="text-xs text-muted-foreground">{priceSuffix(segment)}</span></span>
         </div>
       </div>
     </Link>
   );
 }
 
-function NewProperty({ segment }: { segment: Segment }) {
+function NewProperty({ segment }: { segment: Segment | undefined }) {
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<Segment[]>(segment ? [segment] : []);
+  const [prices, setPrices] = useState<Partial<Record<Segment, number | ''>>>({});
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const { data: me } = useMe();
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    if (!me) return;
+    if (!me || saving) return;
+    if (!selected.length) { toast.error('Escolha ao menos um segmento.'); return; }
+    setSaving(true);
+    try {
+    const values = segmentPricePatch(selected, Object.fromEntries(selected.map((s) => [s, prices[s] === '' ? undefined : prices[s]])));
     const { data, error } = await supabase
       .from("properties")
       .insert({
         owner_id: me.user.id,
-        segment,
+        segments: selected,
+        ...values,
         title: String(f.get("title")),
         city: String(f.get("city")),
-        base_price: Number(f.get("base_price") || 0),
       })
       .select("id")
       .single();
     if (error) { toast.error(error.message); return; }
     setOpen(false);
     navigate({ to: "/imovel/$id", params: { id: data.id } });
+    } catch { toast.error('Confira os valores dos segmentos antes de criar o imóvel.'); }
+    finally { setSaving(false); }
   }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(value) => { setOpen(value); if (value) { setSelected(segment ? [segment] : []); setPrices({}); } }}>
       <DialogTrigger asChild>
         <Button variant="accent"><Plus /> Imóvel</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>Novo imóvel</DialogTitle></DialogHeader>
         <form onSubmit={submit} className="space-y-4">
+          <SegmentCheckboxes value={selected} onChange={setSelected} disabled={saving} />
           <div className="space-y-1.5"><Label>Nome do imóvel</Label><Input name="title" required placeholder="Casa Pé na Areia" /></div>
           <div className="space-y-1.5"><Label>Cidade</Label><Input name="city" placeholder="Ubatuba - SP" /></div>
-          <div className="space-y-1.5"><Label>{priceLabels[segment]}</Label><Input name="base_price" type="number" step="0.01" min="0" required /></div>
-          <Button className="w-full">Criar e abrir</Button>
+          <SegmentPriceInputs selected={selected} prices={prices} onChange={(s, value) => setPrices((current) => ({ ...current, [s]: value }))} disabled={saving} />
+          <Button className="w-full" disabled={saving || !selected.length}>{saving ? 'Criando…' : 'Criar e abrir'}</Button>
         </form>
       </DialogContent>
     </Dialog>
