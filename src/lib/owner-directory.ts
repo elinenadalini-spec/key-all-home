@@ -1,5 +1,9 @@
 export type OwnerContact = { id: string; full_name: string; email: string | null; phone: string | null; city: string | null; whatsapp?: string | null; address?: string | null; is_demo?: boolean };
 
+export function canExpandOwnerProperties(viewer: { isAdmin: boolean; isAgent: boolean } | null | undefined) {
+  return Boolean(viewer?.isAdmin || viewer?.isAgent);
+}
+
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
 export function filterOwners(owners: OwnerContact[], search: string) {
   const query = normalize(search);
