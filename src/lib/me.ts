@@ -8,6 +8,8 @@ export type AppRole = Database["public"]["Enums"]["app_role"];
 
 export const MONTHLY_FEE = 199.99;
 
+export const hasBankDetails = (accountType: string) => accountType === 'owner';
+
 export const meQuery = queryOptions({
   queryKey: ["me"],
   queryFn: async () => {
