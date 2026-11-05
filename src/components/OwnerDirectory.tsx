@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useMe } from '@/lib/me';
 import { filterOwners, type OwnerContact } from '@/lib/owner-directory';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { OwnerAuthorizedProperties } from '@/components/OwnerAuthorizedProperties';
 
 export function OwnerDirectory() {
   const { data: me } = useMe();
   const [search, setSearch] = useState('');
+  const [selectedOwner, setSelectedOwner] = useState<string | null>(null);
   const owners = useQuery({
     queryKey: ['owner-directory', me?.user.id, me?.isAdmin, me?.isAgent],
     enabled: !!me,
@@ -46,9 +49,10 @@ export function OwnerDirectory() {
       <p className="text-sm text-muted-foreground">{list.length} {list.length === 1 ? 'proprietário' : 'proprietários'}</p>
       <ul className="divide-y">
         {list.map((owner) => <li key={owner.id} className="space-y-1 py-3">
-          <div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold">{owner.full_name}</h3>{owner.is_demo && <Badge variant="secondary">Fictício</Badge>}</div>
+          <div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold">{me?.isAgent ? <Button type="button" variant="link" className="h-auto whitespace-normal px-0 text-left" aria-expanded={selectedOwner === owner.id} onClick={() => setSelectedOwner(selectedOwner === owner.id ? null : owner.id)}>{owner.full_name}{selectedOwner === owner.id ? <ChevronUp /> : <ChevronDown />}</Button> : owner.full_name}</h3>{owner.is_demo && <Badge variant="secondary">Fictício</Badge>}</div>
           <p className="break-words text-sm text-muted-foreground">{[owner.city, owner.phone, owner.email].filter(Boolean).join(' · ')}</p>
           {owner.address && <p className="break-words text-sm text-muted-foreground">{owner.address}</p>}
+          {me?.isAgent && selectedOwner === owner.id && <OwnerAuthorizedProperties ownerId={owner.id} />}
         </li>)}
       </ul>
       {!list.length && <p className="text-sm text-muted-foreground">Nenhum proprietário encontrado.</p>}
