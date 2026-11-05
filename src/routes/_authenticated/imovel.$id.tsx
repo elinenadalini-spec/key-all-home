@@ -22,6 +22,7 @@ import { PropertyHistory } from '@/components/PropertyHistory';
 import { Switch } from '@/components/ui/switch';
 import { FeatureChecklist, PropertyFeatureSummary } from '@/components/PropertyFeatures';
 import { canEditPropertyCalendar, canEditPropertyInfo } from '@/lib/property-editing';
+import { PropertyOwnerContact } from '@/components/PropertyOwnerContact';
 
 export const Route = createFileRoute("/_authenticated/imovel/$id")({
   head: () => ({ meta: [{ title: "Imóvel — Temporada" }, { name: "description", content: "Valores, informações e autorizações do imóvel." }, { property: 'og:title', content: 'Imóvel — Temporada' }, { property: 'og:description', content: 'Informações e histórico do imóvel autorizado.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
@@ -89,7 +90,7 @@ function PropertyPage() {
           <PropertyCalendar propertyId={p.id} basePrice={propertyPrice(p, 'temporada')} canEdit={canEditCalendar} />
         </TabsContent>}
         <TabsContent value="fotos" className="pt-4"><Photos p={p} canEdit={canEdit} /></TabsContent>
-        <TabsContent value="info" className="pt-4">{canEditInfo ? <InfoForm key={p.updated_at} p={p} canDelete={canEdit} /> : <PropertyFeatureSummary property={p} />}</TabsContent>
+        <TabsContent value="info" className="pt-4"><PropertyOwnerContact ownerId={p.owner_id} />{canEditInfo ? <InfoForm key={p.updated_at} p={p} canDelete={canEdit} /> : <PropertyFeatureSummary property={p} />}</TabsContent>
         {canEdit && <TabsContent value="acesso" className="pt-4"><Access propertyId={p.id} /></TabsContent>}
         {canEdit && <TabsContent value="historico" className="pt-4"><PropertyHistory propertyId={p.id} /></TabsContent>}
         <TabsContent value="termo" className="pt-4"><div className="rounded-2xl border bg-card p-5"><TermsText /></div></TabsContent>
