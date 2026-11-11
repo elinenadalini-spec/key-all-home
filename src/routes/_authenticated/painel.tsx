@@ -16,6 +16,7 @@ import { PropertyNotifications } from '@/components/PropertyNotifications';
 import { asSegment, propertySegments, propertyPrice, segmentPricePatch, priceSuffix, segmentLabels, segments, type Segment } from '@/lib/segments';
 import { SegmentCheckboxes, SegmentPriceInputs } from '@/components/PropertySegments';
 import { inventoryOwnerFilter } from '@/lib/property-inventory';
+import { ProfessionalsManager } from '@/components/ProfessionalsManager';
 
 export const Route = createFileRoute("/_authenticated/painel")({
   validateSearch: (search: Record<string, unknown>): { segmento?: Segment } => ['venda','anual','temporada'].includes(String(search['segmento'])) ? { segmento: asSegment(String(search['segmento'])) } : {},
@@ -117,6 +118,7 @@ function Painel() {
         {segment && props.data?.filter((p) => propertySegments(p).includes(segment)).map((p) => <PropertyCard key={p.id} p={p} segment={segment} />)}
       </div>
 
+      {(me.isOwner || me.isAdmin) && <ProfessionalsManager />}
       {me.isAgent && !pending && <><PropertyNotifications />{segment && <AgentNetwork segment={segment} />}</>}
     </div>
   );

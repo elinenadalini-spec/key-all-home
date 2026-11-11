@@ -74,24 +74,30 @@ export type Database = {
         Row: {
           agent_id: string
           created_at: string
+          granted_by: string | null
           id: string
           notifications_enabled: boolean
+          owner_accepted_ip: unknown
           owner_accepted_terms_at: string | null
           property_id: string
         }
         Insert: {
           agent_id: string
           created_at?: string
+          granted_by?: string | null
           id?: string
           notifications_enabled?: boolean
+          owner_accepted_ip?: unknown
           owner_accepted_terms_at?: string | null
           property_id: string
         }
         Update: {
           agent_id?: string
           created_at?: string
+          granted_by?: string | null
           id?: string
           notifications_enabled?: boolean
+          owner_accepted_ip?: unknown
           owner_accepted_terms_at?: string | null
           property_id?: string
         }
@@ -459,6 +465,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      agent_authorization_terms: {
+        Args: never
+        Returns: {
+          accepted_at: string
+          accepted_ip: string
+          address: string
+          city: string
+          owner_document: string
+          owner_email: string
+          owner_name: string
+          property_id: string
+          title: string
+        }[]
+      }
       agent_can_see_cover: {
         Args: { _name: string; _uid: string }
         Returns: boolean

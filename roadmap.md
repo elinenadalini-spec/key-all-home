@@ -1,7 +1,7 @@
 # Alterações
-- [ ] Permitir baixar o termo de cada imóvel autorizado com partes, data/hora do aceite e IP do proprietário quando registrado.
-- [ ] Cadastrar pelo menos dez corretores/imobiliárias fictícios de Jurerê com CRECI aprovado.
-- [ ] Criar gestão de profissionais para proprietário e administrador, com autorização individual ou de todos os imóveis e resumo da cobertura.
+- [x] Permitir baixar o termo de cada imóvel autorizado com partes, data/hora do aceite e IP do proprietário quando registrado.
+- [x] Cadastrar pelo menos dez corretores/imobiliárias fictícios de Jurerê com CRECI aprovado.
+- [x] Criar gestão de profissionais para proprietário e administrador, com autorização individual ou de todos os imóveis e resumo da cobertura.
 - [ ] Testar permissões, download e persistência sem alterar acessos reais existentes.
 - [x] Dados bancários somente no cadastro de proprietário; administrador abre imóveis por proprietário na lista do Cadastro, mantendo os acessos dos profissionais. Sete testes aprovados e compilação sem erros; nenhum dado ou permissão alterado.
 - [x] Conferidos com login o administrador Eline e a proprietária Marina: campos bancários aparecem porque ambos têm cadastro de proprietário; administrador abre os vinte imóveis de Marina agrupados em Venda (6), Anual (7) e Temporada (7), sem misturar imóveis de outra proprietária. Abertura de imóvel e recarga aprovadas, sem erros; nenhuma alteração nos dados. Sete testes automatizados aprovados.
