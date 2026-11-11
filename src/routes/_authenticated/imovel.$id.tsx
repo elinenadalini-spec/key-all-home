@@ -23,6 +23,8 @@ import { Switch } from '@/components/ui/switch';
 import { FeatureChecklist, PropertyFeatureSummary } from '@/components/PropertyFeatures';
 import { canEditPropertyCalendar, canEditPropertyInfo } from '@/lib/property-editing';
 import { PropertyOwnerContact } from '@/components/PropertyOwnerContact';
+import { AgentTermDownload } from '@/components/AgentTermDownload';
+import { setAgentAuthorizations } from '@/lib/authorizations.functions';
 
 export const Route = createFileRoute("/_authenticated/imovel/$id")({
   head: () => ({ meta: [{ title: "Imóvel — Temporada" }, { name: "description", content: "Valores, informações e autorizações do imóvel." }, { property: 'og:title', content: 'Imóvel — Temporada' }, { property: 'og:description', content: 'Informações e histórico do imóvel autorizado.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
@@ -93,7 +95,7 @@ function PropertyPage() {
         <TabsContent value="info" className="pt-4"><PropertyOwnerContact ownerId={p.owner_id} />{canEditInfo ? <InfoForm key={p.updated_at} p={p} canDelete={canEdit} /> : <PropertyFeatureSummary property={p} />}</TabsContent>
         {canEdit && <TabsContent value="acesso" className="pt-4"><Access propertyId={p.id} /></TabsContent>}
         {canEdit && <TabsContent value="historico" className="pt-4"><PropertyHistory propertyId={p.id} /></TabsContent>}
-        <TabsContent value="termo" className="pt-4"><div className="rounded-2xl border bg-card p-5"><TermsText /></div></TabsContent>
+        <TabsContent value="termo" className="pt-4"><AgentTermDownload propertyId={p.id} /><div className="rounded-2xl border bg-card p-5"><TermsText /></div></TabsContent>
       </Tabs>
     </div>
   );
@@ -286,13 +288,11 @@ function Access({ propertyId }: { propertyId: string }) {
   });
   const [pendingAgent, setPendingAgent] = useState<{ id: string; requestId?: string } | null>(null);
 
+  const setAuth = useServerFn(setAgentAuthorizations);
   async function authorize() {
     if (!pendingAgent) return;
-    const { error } = await supabase.from("authorizations").insert({
-      property_id: propertyId, agent_id: pendingAgent.id, owner_accepted_terms_at: new Date().toISOString(),
-    });
-    if (error) { toast.error(error.message); return; }
-    await supabase.from("access_requests").update({ status: "approved" }).eq("property_id", propertyId).eq("agent_id", pendingAgent.id);
+    try { await setAuth({ data: { agentId: pendingAgent.id, propertyIds: [propertyId], enabled: true } }); }
+    catch { toast.error('Não foi possível autorizar.'); return; }
     toast.success("Autorização concedida");
     setPendingAgent(null);
     qc.invalidateQueries({ queryKey: ["auths", propertyId] });
@@ -303,9 +303,8 @@ function Access({ propertyId }: { propertyId: string }) {
     qc.invalidateQueries({ queryKey: ["requests"] });
   }
   async function revoke(agentId: string) {
-    const { error } = await supabase.from("authorizations").delete().eq("property_id", propertyId).eq("agent_id", agentId);
-    if (error) { toast.error(error.message); return; }
-    await supabase.from("access_requests").delete().eq("property_id", propertyId).eq("agent_id", agentId);
+    try { await setAuth({ data: { agentId, propertyIds: [propertyId], enabled: false } }); }
+    catch { toast.error('Não foi possível revogar.'); return; }
     qc.invalidateQueries({ queryKey: ["auths", propertyId] });
   }
   async function setNotifications(agentId: string, enabled: boolean) {

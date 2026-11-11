@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ProfessionalsManager } from "@/components/ProfessionalsManager";
 import { TERM_KEYS, useTerms, type TermKey } from "@/lib/terms";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -75,6 +76,7 @@ function Admin() {
         <TabsList>
           <TabsTrigger value="creci">CRECI ({pending.length})</TabsTrigger>
           <TabsTrigger value="users">Usuários e mensalidades</TabsTrigger>
+          <TabsTrigger value="profissionais">Profissionais</TabsTrigger>
           <TabsTrigger value="termos">Termos</TabsTrigger>
         </TabsList>
         <TabsContent value="creci" className="space-y-2 pt-4">
@@ -110,6 +112,7 @@ function Admin() {
             );
           })}
         </TabsContent>
+        <TabsContent value="profissionais" className="pt-4"><ProfessionalsManager /></TabsContent>
         <TabsContent value="termos" className="space-y-4 pt-4"><TermsEditor /></TabsContent>
       </Tabs>
     </div>
