@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarCheck, KeyRound, ShieldCheck, Wallet } from "lucide-react";
-import hero from "@/assets/hero.jpg";
+import heroAsset from "@/assets/praia-aerea-apresentacao.png.asset.json";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -28,7 +28,7 @@ function Index() {
   return (
     <div className="min-h-screen">
       <section className="relative min-h-[88vh] overflow-hidden">
-        <img src={hero} alt="Varanda de casa de praia ao pôr do sol" width={1280} height={1600} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={heroAsset.url} alt="Vista aérea de casa na areia, com mar e ondas ao fundo" width={1121} height={1403} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-veil" />
         <div className="relative mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-between px-5 py-6 text-primary-foreground">
           <div className="flex items-center justify-between">
