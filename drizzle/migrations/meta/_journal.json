@@ -78,6 +78,13 @@
       "when": 1793751355738,
       "tag": "0010_multi_segment_properties",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794405281095,
+      "tag": "0011_authorization_terms_ip",
+      "breakpoints": true
     }
   ]
 }
