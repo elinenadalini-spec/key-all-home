@@ -32,11 +32,11 @@ function Index() {
         <div className="absolute inset-0 bg-veil" />
         <div className="relative mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-between px-5 py-6 text-primary-foreground">
           <div className="flex items-center justify-between">
-            <span className="font-display text-2xl font-bold">Temporada</span>
+            <span className="font-display text-2xl font-bold">PropKey</span>
             <Link to="/auth" className="text-sm font-semibold underline-offset-4 hover:underline">Entrar</Link>
           </div>
           <div className="max-w-xl pb-6">
-            <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Venda, Anual e Temporada</h1>
+            <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Imóveis Atualizados</h1>
             <p className="mt-4 text-base opacity-90 sm:text-lg">
               Sua carteira de imóveis, sempre ligada ao proprietário.
             </p>
