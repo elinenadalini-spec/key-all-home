@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, ChevronDown, CreditCard, FileCheck2, LogOut, PlusCircle, ShieldCheck, UserRound } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -26,12 +26,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   ] as const;
 
   const ownerMode = !!me?.isOwner && !me.isAdmin;
-  const [cadOpen, setCadOpen] = useState(false);
-  const item = "flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium text-foreground bg-card hover:bg-muted";
-  const on = { className: "bg-primary text-primary-foreground border-primary hover:bg-primary" };
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const [cadToggle, setCadOpen] = useState(false);
+  const cadOpen = cadToggle || path === "/perfil" || path === "/profissionais";
+  const base = "flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium";
+  const item = `${base} bg-card text-foreground hover:bg-muted`;
+  const on = { className: `${base} !bg-primary !text-primary-foreground border-primary` };
   const ownerNav = (
     <nav className="space-y-2" aria-label="Menu do proprietário">
-      <Link to="/cadastrar-imovel" className={item} activeProps={{ className: "bg-accent text-accent-foreground border-accent hover:bg-accent" }}><PlusCircle className="h-4 w-4" />Cadastrar Imóvel</Link>
+      <Link to="/cadastrar-imovel" className={item} activeProps={{ className: `${base} !bg-accent !text-accent-foreground border-accent` }}><PlusCircle className="h-4 w-4" />Cadastrar Imóvel</Link>
       <Link to="/painel" className={item} activeProps={on}><CalendarDays className="h-4 w-4" />Meus Imóveis</Link>
       <button type="button" className={item} aria-expanded={cadOpen} onClick={() => setCadOpen(!cadOpen)}><UserRound className="h-4 w-4" />Cadastro<ChevronDown className={`ml-auto h-4 w-4 transition-transform ${cadOpen ? "rotate-180" : ""}`} /></button>
       {cadOpen && <div className="space-y-2 pl-4">
