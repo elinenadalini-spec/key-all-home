@@ -197,6 +197,7 @@ export type Database = {
           phone: string | null
           pix_key: string | null
           subscription_until: string | null
+          website: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -218,6 +219,7 @@ export type Database = {
           phone?: string | null
           pix_key?: string | null
           subscription_until?: string | null
+          website?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -239,6 +241,7 @@ export type Database = {
           phone?: string | null
           pix_key?: string | null
           subscription_until?: string | null
+          website?: string | null
           whatsapp?: string | null
         }
         Relationships: []
@@ -247,6 +250,8 @@ export type Database = {
         Row: {
           address: string | null
           amenities: string[]
+          annual_admin_fee_pct: number | null
+          annual_first_rent_pct: number | null
           annual_price: number | null
           base_price: number
           bathrooms: number
@@ -257,19 +262,25 @@ export type Database = {
           garage_spaces: number
           guests: number
           id: string
+          neighborhood: string | null
           owner_id: string
           photos: string[]
+          sale_commission_pct: number | null
           sale_price: number | null
+          seasonal_commission_pct: number | null
           seasonal_price: number | null
           segment: string
           segments: string[] | null
           suites: number
           title: string
           updated_at: string
+          zip_code: string | null
         }
         Insert: {
           address?: string | null
           amenities?: string[]
+          annual_admin_fee_pct?: number | null
+          annual_first_rent_pct?: number | null
           annual_price?: number | null
           base_price?: number
           bathrooms?: number
@@ -280,19 +291,25 @@ export type Database = {
           garage_spaces?: number
           guests?: number
           id?: string
+          neighborhood?: string | null
           owner_id: string
           photos?: string[]
+          sale_commission_pct?: number | null
           sale_price?: number | null
+          seasonal_commission_pct?: number | null
           seasonal_price?: number | null
           segment?: string
           segments?: string[] | null
           suites?: number
           title: string
           updated_at?: string
+          zip_code?: string | null
         }
         Update: {
           address?: string | null
           amenities?: string[]
+          annual_admin_fee_pct?: number | null
+          annual_first_rent_pct?: number | null
           annual_price?: number | null
           base_price?: number
           bathrooms?: number
@@ -303,15 +320,19 @@ export type Database = {
           garage_spaces?: number
           guests?: number
           id?: string
+          neighborhood?: string | null
           owner_id?: string
           photos?: string[]
+          sale_commission_pct?: number | null
           sale_price?: number | null
+          seasonal_commission_pct?: number | null
           seasonal_price?: number | null
           segment?: string
           segments?: string[] | null
           suites?: number
           title?: string
           updated_at?: string
+          zip_code?: string | null
         }
         Relationships: []
       }
@@ -566,6 +587,23 @@ export type Database = {
           full_name: string
           id: string
           phone: string
+        }[]
+      }
+      list_approved_agents_details: {
+        Args: never
+        Returns: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          address: string
+          city: string
+          company_name: string
+          creci: string
+          creci_uf: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          website: string
+          whatsapp: string
         }[]
       }
       mark_property_notification_read: {

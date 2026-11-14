@@ -13,9 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAutorizacoesRouteImport } from './routes/_authenticated/autorizacoes'
+import { Route as AuthenticatedCadastrarImovelRouteImport } from './routes/_authenticated/cadastrar-imovel'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedProfissionaisRouteImport } from './routes/_authenticated/profissionais'
 import { Route as AuthenticatedImovelIdRouteImport } from './routes/_authenticated/imovel.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -37,6 +40,18 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAutorizacoesRoute =
+  AuthenticatedAutorizacoesRouteImport.update({
+    id: '/autorizacoes',
+    path: '/autorizacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCadastrarImovelRoute =
+  AuthenticatedCadastrarImovelRouteImport.update({
+    id: '/cadastrar-imovel',
+    path: '/cadastrar-imovel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
@@ -52,6 +67,12 @@ const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfissionaisRoute =
+  AuthenticatedProfissionaisRouteImport.update({
+    id: '/profissionais',
+    path: '/profissionais',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedImovelIdRoute = AuthenticatedImovelIdRouteImport.update({
   id: '/imovel/$id',
   path: '/imovel/$id',
@@ -62,18 +83,24 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/autorizacoes': typeof AuthenticatedAutorizacoesRoute
+  '/cadastrar-imovel': typeof AuthenticatedCadastrarImovelRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/profissionais': typeof AuthenticatedProfissionaisRoute
   '/imovel/$id': typeof AuthenticatedImovelIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/autorizacoes': typeof AuthenticatedAutorizacoesRoute
+  '/cadastrar-imovel': typeof AuthenticatedCadastrarImovelRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/profissionais': typeof AuthenticatedProfissionaisRoute
   '/imovel/$id': typeof AuthenticatedImovelIdRoute
 }
 export interface FileRoutesById {
@@ -82,9 +109,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/autorizacoes': typeof AuthenticatedAutorizacoesRoute
+  '/_authenticated/cadastrar-imovel': typeof AuthenticatedCadastrarImovelRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/_authenticated/profissionais': typeof AuthenticatedProfissionaisRoute
   '/_authenticated/imovel/$id': typeof AuthenticatedImovelIdRoute
 }
 export interface FileRouteTypes {
@@ -93,18 +123,24 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/autorizacoes'
+    | '/cadastrar-imovel'
     | '/financeiro'
     | '/painel'
     | '/perfil'
+    | '/profissionais'
     | '/imovel/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/admin'
+    | '/autorizacoes'
+    | '/cadastrar-imovel'
     | '/financeiro'
     | '/painel'
     | '/perfil'
+    | '/profissionais'
     | '/imovel/$id'
   id:
     | '__root__'
@@ -112,9 +148,12 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin'
+    | '/_authenticated/autorizacoes'
+    | '/_authenticated/cadastrar-imovel'
     | '/_authenticated/financeiro'
     | '/_authenticated/painel'
     | '/_authenticated/perfil'
+    | '/_authenticated/profissionais'
     | '/_authenticated/imovel/$id'
   fileRoutesById: FileRoutesById
 }
@@ -154,6 +193,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/autorizacoes': {
+      id: '/_authenticated/autorizacoes'
+      path: '/autorizacoes'
+      fullPath: '/autorizacoes'
+      preLoaderRoute: typeof AuthenticatedAutorizacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cadastrar-imovel': {
+      id: '/_authenticated/cadastrar-imovel'
+      path: '/cadastrar-imovel'
+      fullPath: '/cadastrar-imovel'
+      preLoaderRoute: typeof AuthenticatedCadastrarImovelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/financeiro': {
       id: '/_authenticated/financeiro'
       path: '/financeiro'
@@ -175,6 +228,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profissionais': {
+      id: '/_authenticated/profissionais'
+      path: '/profissionais'
+      fullPath: '/profissionais'
+      preLoaderRoute: typeof AuthenticatedProfissionaisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/imovel/$id': {
       id: '/_authenticated/imovel/$id'
       path: '/imovel/$id'
@@ -187,17 +247,23 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAutorizacoesRoute: typeof AuthenticatedAutorizacoesRoute
+  AuthenticatedCadastrarImovelRoute: typeof AuthenticatedCadastrarImovelRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+  AuthenticatedProfissionaisRoute: typeof AuthenticatedProfissionaisRoute
   AuthenticatedImovelIdRoute: typeof AuthenticatedImovelIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAutorizacoesRoute: AuthenticatedAutorizacoesRoute,
+  AuthenticatedCadastrarImovelRoute: AuthenticatedCadastrarImovelRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
+  AuthenticatedProfissionaisRoute: AuthenticatedProfissionaisRoute,
   AuthenticatedImovelIdRoute: AuthenticatedImovelIdRoute,
 }
 
