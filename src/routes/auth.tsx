@@ -8,14 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { segmentSchema } from '@/lib/segments';
 import beach from "@/assets/auth-beach.jpg";
+import logoIcon from "@/assets/e-imovel-icone.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar — Temporada" },
+      { title: "Entrar — e-imóvel" },
       { name: "description", content: "Acesse ou crie sua conta de proprietário, corretor ou imobiliária." },
-      { property: "og:title", content: "Entrar — Temporada" },
-      { property: "og:description", content: "Acesse sua conta Temporada." },
+      { property: "og:title", content: "Entrar — e-imóvel" },
+      { property: "og:description", content: "Acesse sua conta e-imóvel." },
       { property: 'og:type', content: 'website' },
       { name: 'twitter:card', content: 'summary_large_image' },
     ],
@@ -78,7 +79,10 @@ function AuthPage() {
       <img src={beach} alt="Praia com areia e mar" width={1920} height={1280} className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-veil" />
       <div className="relative w-full max-w-md rounded-3xl bg-card p-6 shadow-soft sm:p-8">
-        <Link to="/" className="font-display text-2xl font-bold text-primary">Temporada</Link>
+        <Link to="/" className="flex items-center gap-3">
+          <img src={logoIcon.url} alt="" width={738} height={716} className="h-10 w-10 shrink-0" />
+          <span className="text-2xl font-bold tracking-tight text-foreground">e-imóvel</span>
+        </Link>
         {sent ? (
           <div className="mt-6 space-y-2">
             <h2 className="text-2xl font-semibold">Confira seu e-mail</h2>

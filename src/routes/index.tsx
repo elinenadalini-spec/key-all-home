@@ -1,14 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarCheck, KeyRound, ShieldCheck, Wallet } from "lucide-react";
 import heroAsset from "@/assets/praia-aerea-apresentacao.png.asset.json";
+import logoIcon from "@/assets/e-imovel-icone.png.asset.json";
+import logoStacked from "@/assets/e-imovel-logotipo.png.asset.json";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Temporada — Imóveis de Venda, Anual e Temporada" },
+      { title: "e-imóvel — Imóveis de Venda, Anual e Temporada" },
       { name: "description", content: "Carteira de imóveis para venda, aluguel anual e temporada, com valores e autorizações por proprietário." },
-      { property: "og:title", content: "Temporada — Imóveis de Venda, Anual e Temporada" },
+      { property: "og:title", content: "e-imóvel — Imóveis de Venda, Anual e Temporada" },
       { property: "og:description", content: "Gestão de Venda, Anual e Temporada entre proprietários e profissionais autorizados." },
       { property: 'og:type', content: 'website' },
       { name: 'twitter:card', content: 'summary_large_image' },
@@ -32,8 +34,11 @@ function Index() {
         <div className="absolute inset-0 bg-veil" />
         <div className="relative mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-between px-5 py-6 text-primary-foreground">
           <div className="flex items-center justify-between">
-            <span className="font-display text-2xl font-bold">PropKey</span>
-            <Link to="/auth" className="text-sm font-semibold underline-offset-4 hover:underline">Entrar</Link>
+            <Link to="/" className="flex items-center gap-2 rounded-full bg-background/95 px-3.5 py-1.5 shadow-soft backdrop-blur">
+              <img src={logoIcon.url} alt="" width={738} height={716} className="h-6 w-6" />
+              <span className="text-lg font-bold tracking-tight text-foreground">e-imóvel</span>
+            </Link>
+            <Link to="/auth" className="rounded-full bg-background/95 px-4 py-1.5 text-sm font-semibold text-foreground shadow-soft backdrop-blur hover:bg-background">Entrar</Link>
           </div>
           <div className="max-w-xl pb-6">
             <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Imóveis Atualizados</h1>
@@ -56,7 +61,10 @@ function Index() {
           </div>
         ))}
       </section>
-      <footer className="pb-10 text-center text-xs text-muted-foreground">Mensalidade única de R$ 199,99 por perfil.</footer>
+      <footer className="flex flex-col items-center gap-3 pb-10 text-center text-xs text-muted-foreground">
+        <img src={logoStacked.url} alt="e-imóvel" width={767} height={885} className="h-20 w-auto" />
+        <p>Mensalidade única de R$ 199,99 por perfil.</p>
+      </footer>
     </div>
   );
 }

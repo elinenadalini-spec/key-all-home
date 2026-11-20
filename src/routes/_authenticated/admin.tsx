@@ -15,7 +15,7 @@ import { ProfessionalsManager } from "@/components/ProfessionalsManager";
 import { TERM_KEYS, useTerms, type TermKey } from "@/lib/terms";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Administração — Temporada" }, { name: "description", content: "Aprovação de CRECI e mensalidades." }, { property: 'og:title', content: 'Administração — Temporada' }, { property: 'og:description', content: 'Gestão de profissionais, mensalidades e termos.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
+  head: () => ({ meta: [{ title: "Administração — e-imóvel" }, { name: "description", content: "Aprovação de CRECI e mensalidades." }, { property: 'og:title', content: 'Administração — e-imóvel' }, { property: 'og:description', content: 'Gestão de profissionais, mensalidades e termos.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
   component: Admin,
 });
 

@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { accountLabel, isSubscriptionActive, useMe } from "@/lib/me";
 import { Badge } from "@/components/ui/badge";
+import logoIcon from "@/assets/e-imovel-icone.png.asset.json";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { data: me } = useMe();
@@ -52,8 +53,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen pb-24 md:pb-8">
       <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/painel" className="font-display text-xl font-bold text-primary">
-            PropKey
+          <Link to="/painel" className="flex items-center gap-2">
+            <img src={logoIcon.url} alt="" width={738} height={716} className="h-8 w-8 shrink-0" />
+            <span className="text-xl font-bold tracking-tight text-foreground">e-imóvel</span>
           </Link>
           <nav className={ownerMode ? "hidden" : "hidden gap-1 md:flex"}>
             {nav.map((n) => (

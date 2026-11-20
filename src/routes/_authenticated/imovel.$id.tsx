@@ -27,7 +27,7 @@ import { AgentTermDownload } from '@/components/AgentTermDownload';
 import { setAgentAuthorizations } from '@/lib/authorizations.functions';
 
 export const Route = createFileRoute("/_authenticated/imovel/$id")({
-  head: () => ({ meta: [{ title: "Imóvel — Temporada" }, { name: "description", content: "Valores, informações e autorizações do imóvel." }, { property: 'og:title', content: 'Imóvel — Temporada' }, { property: 'og:description', content: 'Informações e histórico do imóvel autorizado.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
+  head: () => ({ meta: [{ title: "Imóvel — e-imóvel" }, { name: "description", content: "Valores, informações e autorizações do imóvel." }, { property: 'og:title', content: 'Imóvel — e-imóvel' }, { property: 'og:description', content: 'Informações e histórico do imóvel autorizado.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
   component: PropertyPage,
 });
 
