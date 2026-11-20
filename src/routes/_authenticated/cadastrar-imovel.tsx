@@ -60,6 +60,7 @@ function CadastrarImovel() {
   return (
     <form onSubmit={submit} className="max-w-2xl space-y-6">
       <h1 className="text-3xl font-bold">Cadastrar imóvel</h1>
+      <h2 className="sr-only">Segmentos e percentuais</h2>
       <fieldset className="space-y-3 rounded-2xl border bg-card p-4" disabled={saving}>
         <legend className="px-1 text-sm font-semibold">Segmentos</legend>
         <div className="grid gap-4 sm:grid-cols-3">

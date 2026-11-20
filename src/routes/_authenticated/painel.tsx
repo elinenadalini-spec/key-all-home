@@ -71,6 +71,7 @@ function Painel() {
         </div>
         {me.isOwner && <Button asChild variant="accent"><Link to="/cadastrar-imovel">Cadastrar Imóvel</Link></Button>}
       </div>
+      <h2 className="sr-only">Lista de imóveis</h2>
 
       {pending && (
         <div className="flex gap-3 rounded-2xl border border-accent/40 bg-accent/10 p-4 text-sm">

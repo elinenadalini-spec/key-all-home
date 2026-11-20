@@ -68,11 +68,13 @@ function Admin() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Administração</h1>
+      <h2 className="sr-only">Resumo</h2>
       <div className="grid grid-cols-3 gap-3">
         <Stat l="Usuários" v={all.length} />
         <Stat l="Em dia" v={activeCount} />
         <Stat l="Receita/mês" v={brl(activeCount * MONTHLY_FEE)} />
       </div>
+      <h2 className="sr-only">Gestão de CRECI, usuários, profissionais e termos</h2>
       <Tabs defaultValue="creci">
         <TabsList>
           <TabsTrigger value="creci">CRECI ({pending.length})</TabsTrigger>

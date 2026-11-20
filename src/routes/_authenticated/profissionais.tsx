@@ -28,6 +28,7 @@ function Profissionais() {
   return (
     <div className="space-y-4">
       <h1 className="text-3xl font-bold">Cadastro de profissionais</h1>
+      <h2 className="sr-only">Pesquisar profissionais</h2>
       <div className="space-y-3 rounded-2xl border bg-card p-4">
         <Input placeholder={mode === 'creci' ? 'Digite o número do CRECI' : 'Digite o nome'} value={q} onChange={(e) => setQ(e.target.value)} />
         <RadioGroup value={mode} onValueChange={(v) => setMode(v as 'nome' | 'creci')} className="flex gap-6">
@@ -36,6 +37,7 @@ function Profissionais() {
         </RadioGroup>
       </div>
       {agents.isSuccess && !list.length && <p className="text-sm text-muted-foreground">Nenhum profissional encontrado.</p>}
+      <h2 className="sr-only">Lista de profissionais</h2>
       <div className="space-y-2">
         {list.map((a) => (
           <div key={a.id} className="rounded-xl border bg-card p-3">
