@@ -1,3 +1,4 @@
+import logoIcon from '@/assets/e-imovel-icone.png.asset.json';
 import { segmentLabels, type Segment } from './segments';
 
 export type TermPdfData = {
@@ -16,10 +17,38 @@ export function percentLines(p: TermPdfData['property']) {
     : `${segmentLabels[s]}: ${(s === 'venda' ? p.sale_commission_pct : p.seasonal_commission_pct) ?? '—'}%`);
 }
 
+async function loadLogoDataUrl(origin: string) {
+  const response = await fetch(new URL(logoIcon.url, origin));
+  if (!response.ok) throw new Error('Não foi possível carregar o logotipo.');
+  const blob = await response.blob();
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
 export async function downloadTermPdf(d: TermPdfData, origin: string) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  let y = 18;
+  let brandTextX = 15;
+  try {
+    const logo = await loadLogoDataUrl(origin);
+    const image = doc.getImageProperties(logo);
+    const width = 18;
+    const height = width * image.height / image.width;
+    doc.addImage(logo, 'PNG', 15, 14, width, height);
+    brandTextX = 39;
+  } catch {
+    // O termo continua disponível com o nome da marca se a imagem não carregar.
+  }
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text('e-imóvel', brandTextX, 25);
+  doc.setDrawColor(190);
+  doc.line(15, 35, 195, 35);
+  let y = 43;
   const write = (text: string, opts: { bold?: boolean; size?: number } = {}) => {
     doc.setFont('helvetica', opts.bold ? 'bold' : 'normal'); doc.setFontSize(opts.size ?? 10);
     for (const line of doc.splitTextToSize(text, 180) as string[]) { if (y > 280) { doc.addPage(); y = 18; } doc.text(line, 15, y); y += (opts.size ?? 10) * 0.5; }
