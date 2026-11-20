@@ -1,4 +1,5 @@
 # Alterações
+- [ ] Exigir cadastro por perfil (CPF, CRECI-SC F/J ou CNPJ e razão social), inclusive após Google; validar e testar bloqueio até completar.
 - [x] Permitir baixar o termo de cada imóvel autorizado com partes, data/hora do aceite e IP do proprietário quando registrado.
 - [x] Cadastrar pelo menos dez corretores/imobiliárias fictícios de Jurerê com CRECI aprovado.
 - [x] Criar gestão de profissionais para proprietário e administrador, com autorização individual ou de todos os imóveis e resumo da cobertura.
