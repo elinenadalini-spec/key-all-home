@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { ProfessionalsManager } from '@/components/ProfessionalsManager';
 
 export const Route = createFileRoute('/_authenticated/autorizacoes')({
+  staticData: { sitemap: false },
   head: () => ({ meta: [{ title: 'Autorizações — e-imóvel' }, { name: 'description', content: 'Profissionais autorizados por imóvel e termos em PDF.' }, { property: 'og:title', content: 'Autorizações — e-imóvel' }, { property: 'og:description', content: 'Termos de autorização por imóvel.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: Autorizacoes,
 });

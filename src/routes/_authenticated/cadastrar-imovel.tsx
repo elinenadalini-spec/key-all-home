@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export const Route = createFileRoute('/_authenticated/cadastrar-imovel')({
+  staticData: { sitemap: false },
   head: () => ({ meta: [{ title: 'Cadastrar imóvel — e-imóvel' }, { name: 'description', content: 'Cadastre um imóvel em Venda, Anual ou Temporada.' }, { property: 'og:title', content: 'Cadastrar imóvel — e-imóvel' }, { property: 'og:description', content: 'Novo imóvel com segmentos e percentuais.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: CadastrarImovel,
 });

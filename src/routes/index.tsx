@@ -6,6 +6,7 @@ import logoStacked from "@/assets/e-imovel-logotipo.png.asset.json";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "e-imóvel — Imóveis de Venda, Anual e Temporada" },

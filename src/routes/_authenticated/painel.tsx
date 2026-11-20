@@ -16,6 +16,7 @@ import { ProfessionalsManager } from '@/components/ProfessionalsManager';
 import { sortByStreet } from '@/lib/street-sort';
 
 export const Route = createFileRoute("/_authenticated/painel")({
+  staticData: { sitemap: false },
   validateSearch: (search: Record<string, unknown>): { segmento?: Segment } => ['venda','anual','temporada'].includes(String(search['segmento'])) ? { segmento: asSegment(String(search['segmento'])) } : {},
   head: () => ({ meta: [{ title: "Meus imóveis — e-imóvel" }, { name: "description", content: "Imóveis de Venda, Anual e Temporada vinculados aos proprietários." }, { property: 'og:title', content: 'Meus imóveis — e-imóvel' }, { property: 'og:description', content: 'Carteira de Venda, Anual e Temporada.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
   component: Painel,

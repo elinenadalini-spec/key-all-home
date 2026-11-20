@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { OwnerDirectory } from '@/components/OwnerDirectory';
 
 export const Route = createFileRoute("/_authenticated/perfil")({
+  staticData: { sitemap: false },
   head: () => ({ meta: [{ title: "Meu cadastro — e-imóvel" }, { name: "description", content: "Dados pessoais, contatos e bancários." }, { property: 'og:title', content: 'Meu cadastro — e-imóvel' }, { property: 'og:description', content: 'Cadastro pessoal e contatos no e-imóvel.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary_large_image' }] }),
   component: Perfil,
 });

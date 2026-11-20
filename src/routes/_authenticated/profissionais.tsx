@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
 export const Route = createFileRoute('/_authenticated/profissionais')({
+  staticData: { sitemap: false },
   head: () => ({ meta: [{ title: 'Cadastro de profissionais — e-imóvel' }, { name: 'description', content: 'Corretores e imobiliárias com CRECI aprovado.' }, { property: 'og:title', content: 'Cadastro de profissionais — e-imóvel' }, { property: 'og:description', content: 'Pesquise profissionais por nome ou CRECI.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: Profissionais,
 });

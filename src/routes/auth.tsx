@@ -11,6 +11,7 @@ import beach from "@/assets/auth-beach.jpg";
 import logoIcon from "@/assets/e-imovel-icone.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
+  staticData: { sitemap: true },
   head: () => ({
     meta: [
       { title: "Entrar — e-imóvel" },
