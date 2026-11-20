@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarCheck, KeyRound, ShieldCheck, Wallet } from "lucide-react";
 import heroAsset from "@/assets/praia-aerea-apresentacao.png.asset.json";
-import logoIcon from "@/assets/e-imovel-icone.png.asset.json";
+import logoMark from "@/assets/e-imovel-marca-transparente.png.asset.json";
 import logoStacked from "@/assets/e-imovel-logotipo.png.asset.json";
 import { Button } from "@/components/ui/button";
 
@@ -34,9 +34,9 @@ function Index() {
         <div className="absolute inset-0 bg-veil" />
         <div className="relative mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-between px-5 py-6 text-primary-foreground">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 rounded-full bg-background/95 px-3.5 py-1.5 shadow-soft backdrop-blur">
-              <img src={logoIcon.url} alt="" width={738} height={716} className="h-6 w-6" />
-              <span className="text-lg font-bold tracking-tight text-foreground">e-imóvel</span>
+            <Link to="/" className="relative inline-flex">
+              <span aria-hidden className="pointer-events-none absolute -inset-x-7 -inset-y-3 bg-smoke blur-lg" />
+              <img src={logoMark.url} alt="e-imóvel" width={790} height={911} className="relative h-16 w-auto sm:h-20" />
             </Link>
             <Link to="/auth" className="rounded-full bg-background/95 px-4 py-1.5 text-sm font-semibold text-foreground shadow-soft backdrop-blur hover:bg-background">Entrar</Link>
           </div>
