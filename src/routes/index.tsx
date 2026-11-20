@@ -34,22 +34,24 @@ function Index() {
         <img src={heroAsset.url} alt="Vista aérea de casa na areia, com mar e ondas ao fundo" width={1121} height={1403} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-veil" />
         <div className="relative mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-between px-5 py-6 text-primary-foreground">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="relative inline-flex">
-              <span aria-hidden className="pointer-events-none absolute -inset-x-7 -inset-y-3 bg-smoke blur-lg" />
-              <img src={logoMark.url} alt="e-imóvel" width={790} height={911} className="relative h-16 w-auto sm:h-20" />
-            </Link>
+          <div className="flex justify-end">
             <Link to="/auth" className="rounded-full bg-background/95 px-4 py-1.5 text-sm font-semibold text-foreground shadow-soft backdrop-blur hover:bg-background">Entrar</Link>
           </div>
-          <div className="max-w-xl pb-6">
-            <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Imóveis Atualizados<span className="sr-only"> — gestão de imóveis de venda, aluguel anual e temporada para proprietários e profissionais</span></h1>
-            <p className="mt-4 text-base opacity-90 sm:text-lg">
-              Sua carteira de imóveis, sempre ligada ao proprietário.
+          <div className="mx-auto max-w-2xl pt-6 text-center">
+            <h1 className="text-glow text-4xl font-bold leading-tight sm:text-6xl">Imóveis Sempre Atualizados<span className="sr-only"> — gestão de imóveis de venda, aluguel anual e temporada para proprietários e profissionais</span></h1>
+            <p className="text-glow mt-3 text-base font-normal opacity-90 sm:text-lg">
+              Diretamente pelo proprietário
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg" variant="accent"><Link to="/auth">Criar conta</Link></Button>
               <Button asChild size="lg" variant="glass"><Link to="/auth">Já tenho conta</Link></Button>
             </div>
+          </div>
+          <div className="flex justify-center pb-4">
+            <Link to="/" className="relative inline-flex">
+              <span aria-hidden className="pointer-events-none absolute -inset-x-10 -inset-y-6 bg-smoke blur-2xl" />
+              <img src={logoMark.url} alt="e-imóvel" width={790} height={911} className="relative h-20 w-auto sm:h-28" />
+            </Link>
           </div>
         </div>
       </section>
