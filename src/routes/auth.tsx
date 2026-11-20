@@ -17,7 +17,7 @@ export const Route = createFileRoute("/auth")({
       { title: "Entrar — e-imóvel" },
       { name: "description", content: "Acesse ou crie sua conta de proprietário, corretor ou imobiliária." },
       { property: "og:title", content: "Entrar — e-imóvel" },
-      { property: "og:description", content: "Acesse sua conta e-imóvel." },
+      { property: "og:description", content: "Acesse ou crie sua conta e-imóvel de proprietário, corretor ou imobiliária." },
       { property: 'og:type', content: 'website' },
       { name: 'twitter:card', content: 'summary_large_image' },
     ],
@@ -84,6 +84,7 @@ function AuthPage() {
           <img src={logoIcon.url} alt="" width={738} height={716} className="h-10 w-10 shrink-0" />
           <span className="text-2xl font-bold tracking-tight text-foreground">e-imóvel</span>
         </Link>
+        <h1 className="mt-4 text-lg font-semibold text-foreground">Entre ou crie sua conta de proprietário, corretor ou imobiliária</h1>
         {sent ? (
           <div className="mt-6 space-y-2">
             <h2 className="text-2xl font-semibold">Confira seu e-mail</h2>

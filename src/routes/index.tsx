@@ -9,10 +9,10 @@ export const Route = createFileRoute("/")({
   staticData: { sitemap: true },
   head: () => ({
     meta: [
-      { title: "e-imóvel — Imóveis de Venda, Anual e Temporada" },
-      { name: "description", content: "Carteira de imóveis para venda, aluguel anual e temporada, com valores e autorizações por proprietário." },
-      { property: "og:title", content: "e-imóvel — Imóveis de Venda, Anual e Temporada" },
-      { property: "og:description", content: "Gestão de Venda, Anual e Temporada entre proprietários e profissionais autorizados." },
+      { title: "e-imóvel — Gestão de imóveis para proprietários e corretores" },
+      { name: "description", content: "Proprietários gerenciam imóveis de venda, aluguel anual e temporada e liberam acesso a corretores e imobiliárias autorizados." },
+      { property: "og:title", content: "e-imóvel — Gestão de imóveis para proprietários e corretores" },
+      { property: "og:description", content: "Carteira de imóveis de venda, aluguel anual e temporada conectando proprietários a corretores e imobiliárias autorizados." },
       { property: 'og:type', content: 'website' },
       { name: 'twitter:card', content: 'summary_large_image' },
     ],
@@ -42,7 +42,7 @@ function Index() {
             <Link to="/auth" className="rounded-full bg-background/95 px-4 py-1.5 text-sm font-semibold text-foreground shadow-soft backdrop-blur hover:bg-background">Entrar</Link>
           </div>
           <div className="max-w-xl pb-6">
-            <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Imóveis Atualizados</h1>
+            <h1 className="text-4xl font-bold leading-tight sm:text-6xl">Imóveis Atualizados<span className="sr-only"> — gestão de imóveis de venda, aluguel anual e temporada para proprietários e profissionais</span></h1>
             <p className="mt-4 text-base opacity-90 sm:text-lg">
               Sua carteira de imóveis, sempre ligada ao proprietário.
             </p>
@@ -57,7 +57,7 @@ function Index() {
         {features.map((f) => (
           <div key={f.t} className="rounded-2xl border bg-card p-6 shadow-soft">
             <f.icon className="h-6 w-6 text-accent" />
-            <h3 className="mt-3 text-xl font-semibold">{f.t}</h3>
+            <h2 className="mt-3 text-xl font-semibold">{f.t}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{f.d}</p>
           </div>
         ))}
