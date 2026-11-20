@@ -91,7 +91,7 @@ export function PropertyCalendar({ propertyId, basePrice, canEdit }: { propertyI
       <div className="flex items-center justify-between">
         <Button type="button" variant="ghost" size="icon" disabled={saving} onClick={() => { setMonth(subMonths(month, 1)); setSel(new Set()); setPrice(""); }} aria-label="Mês anterior"><ChevronLeft /></Button>
         <div className="text-center">
-          <h3 className="text-xl font-semibold capitalize">{format(month, "MMMM yyyy", { locale: ptBR })}</h3>
+          <h2 className="text-xl font-semibold capitalize">{format(month, "MMMM yyyy", { locale: ptBR })}</h2>
           <p className="flex items-center justify-center gap-1 text-xs text-success"><Radio className="h-3 w-3" /> ao vivo</p>
         </div>
         <Button type="button" variant="ghost" size="icon" disabled={saving} onClick={() => { setMonth(addMonths(month, 1)); setSel(new Set()); setPrice(""); }} aria-label="Próximo mês"><ChevronRight /></Button>
